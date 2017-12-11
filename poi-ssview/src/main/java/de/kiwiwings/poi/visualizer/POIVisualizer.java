@@ -1,4 +1,4 @@
-package de.kiwiwings.poi.ssview;
+package de.kiwiwings.poi.visualizer;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -33,7 +33,7 @@ import de.kiwiwings.poi.ssview.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.ssview.treemodel.TreeModelFileSource;
 import de.kiwiwings.poi.ssview.treemodel.TreeModelLoadException;
 
-public class SSView {
+public class POIVisualizer {
 	
 	private final JFrame frame;
 	private final DefaultMutableTreeNode treeRoot;
@@ -50,11 +50,11 @@ public class SSView {
 	
 	
     public static void main(String[] args) {
-    	SSView view = new SSView();
+    	POIVisualizer view = new POIVisualizer();
     	view.init();
     }
 	
-	SSView() {
+	POIVisualizer() {
 		frame = new JFrame("POI SSView");
 		treeRoot = new DefaultMutableTreeNode("not loaded ...");
 		treeModel = new DefaultTreeModel(treeRoot);

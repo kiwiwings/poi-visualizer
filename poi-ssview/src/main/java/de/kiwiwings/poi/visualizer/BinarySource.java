@@ -1,4 +1,4 @@
-package de.kiwiwings.poi.ssview;
+package de.kiwiwings.poi.visualizer;
 
 import java.io.IOException;
 

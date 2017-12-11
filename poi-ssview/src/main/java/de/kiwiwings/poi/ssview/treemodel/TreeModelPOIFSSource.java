@@ -13,7 +13,7 @@ import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.util.IOUtils;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 
-import de.kiwiwings.poi.ssview.TreeObservable;
+import de.kiwiwings.poi.visualizer.TreeObservable;
 
 public class TreeModelPOIFSSource implements TreeModelSource {
 
