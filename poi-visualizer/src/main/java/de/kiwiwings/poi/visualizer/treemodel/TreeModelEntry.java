@@ -1,4 +1,4 @@
-package de.kiwiwings.poi.ssview.treemodel;
+package de.kiwiwings.poi.visualizer.treemodel;
 
 import java.io.Closeable;
 import java.util.regex.Matcher;

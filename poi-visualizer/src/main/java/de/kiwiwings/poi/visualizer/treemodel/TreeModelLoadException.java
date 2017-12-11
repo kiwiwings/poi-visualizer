@@ -1,4 +1,4 @@
-package de.kiwiwings.poi.ssview.treemodel;
+package de.kiwiwings.poi.visualizer.treemodel;
 
 public class TreeModelLoadException extends Exception {
 

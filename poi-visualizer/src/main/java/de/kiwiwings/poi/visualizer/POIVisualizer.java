@@ -29,9 +29,9 @@ import org.apache.poi.util.IOUtils;
 import org.exbin.deltahex.swing.CodeArea;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 
-import de.kiwiwings.poi.ssview.treemodel.TreeModelEntry;
-import de.kiwiwings.poi.ssview.treemodel.TreeModelFileSource;
-import de.kiwiwings.poi.ssview.treemodel.TreeModelLoadException;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelFileSource;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
 
 public class POIVisualizer {
 	
