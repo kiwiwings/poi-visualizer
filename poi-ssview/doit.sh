@@ -1,0 +1,3 @@
+#!/bin/sh
+export GDK_SCALE=3
+java -cp /home/kiwiwings/project/git/poi-ssview/target/classes:/home/kiwiwings/project/maven_repo/org/exbin/deltahex/deltahex-core/0.1.2/deltahex-core-0.1.2.jar:/home/kiwiwings/project/maven_repo/org/exbin/deltahex/deltahex-swing/0.1.2/deltahex-swing-0.1.2.jar:/home/kiwiwings/project/maven_repo/org/exbin/utils/exbin-binary_data/0.1.2/exbin-binary_data-0.1.2.jar de.kiwiwings.poi.ssview.SSView
