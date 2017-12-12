@@ -39,8 +39,6 @@ import org.apache.poi.util.LocaleUtil;
 import org.apache.poi.util.TempFile;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 
-import de.kiwiwings.poi.visualizer.TreeObservable;
-
 public class TreeModelOPCSource implements TreeModelSource {
 	
 	final DefaultMutableTreeNode parent;

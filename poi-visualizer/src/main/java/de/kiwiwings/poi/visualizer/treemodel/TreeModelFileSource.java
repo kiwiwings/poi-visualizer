@@ -28,8 +28,6 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import org.apache.poi.poifs.filesystem.FileMagic;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 
-import de.kiwiwings.poi.visualizer.TreeObservable;
-
 public class TreeModelFileSource implements TreeModelSource {
 	
 	final DefaultMutableTreeNode parent;

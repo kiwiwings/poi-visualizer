@@ -16,9 +16,12 @@
 ==================================================================== */
 
 
-package de.kiwiwings.poi.visualizer;
+package de.kiwiwings.poi.visualizer.treemodel;
 
 import java.util.Observable;
+
+import de.kiwiwings.poi.visualizer.BinarySource;
+import de.kiwiwings.poi.visualizer.StructuredSource;
 
 public class TreeObservable extends Observable {
 	private BinarySource binarySource;

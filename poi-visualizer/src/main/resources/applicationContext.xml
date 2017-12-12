@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd"
+	>
+	
+	<context:component-scan base-package="de.kiwiwings.poi.visualizer" />
+	<context:annotation-config />
+
+	<bean id="visualizerFrame" class="javax.swing.JFrame">
+		<constructor-arg index="0" value="POI Visualizer" />
+		<property name="defaultCloseOperation" value="#{T(javax.swing.JFrame).EXIT_ON_CLOSE}" />
+	</bean>
+
+	<bean id="treeRoot" class="javax.swing.tree.DefaultMutableTreeNode">
+		<property name="userObject" value="not loaded ..." />
+	</bean>
+
+	<bean id="treeModel" class="javax.swing.tree.DefaultTreeModel">
+		<constructor-arg index="0" ref="treeRoot" />
+	</bean>
+
+	<bean id="treeDir" class="javax.swing.JTree">
+		<property name="model" ref="treeModel" />
+	</bean>
+
+	<bean id="treeScroll" class="javax.swing.JScrollPane">
+		<property name="viewportView" ref="treeDir" />
+	</bean>
+
+	<bean id="codeArea" class="org.exbin.deltahex.swing.CodeArea">
+	</bean>
+
+	<bean id="structureArea" class="javax.swing.JPanel">
+	</bean>
+
+	<bean id="contentArea" class="javax.swing.JTabbedPane">
+	</bean>
+
+	<bean id="splitPane" class="javax.swing.JSplitPane">
+		<property name="leftComponent" ref="treeScroll" />
+		<property name="rightComponent" ref="contentArea" />
+		<property name="dividerLocation" value="150" />
+		<property name="oneTouchExpandable" value="true" />
+		<property name="continuousLayout" value="true" />
+	</bean>
+
+</beans>
