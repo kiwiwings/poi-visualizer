@@ -17,10 +17,7 @@
 
 package de.kiwiwings.poi.visualizer;
 
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
@@ -28,25 +25,23 @@ import java.io.IOException;
 import javax.annotation.PostConstruct;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTree;
-import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeSelectionModel;
+import javax.swing.tree.TreePath;
 
 import org.apache.poi.util.IOUtils;
 import org.exbin.deltahex.swing.CodeArea;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -54,6 +49,7 @@ import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelFileSource;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
+import de.kiwiwings.poi.visualizer.util.MLFactory;
 
 @org.springframework.stereotype.Component
 public class POIVisualizer {
@@ -71,9 +67,6 @@ public class POIVisualizer {
 	private JTree treeDir;
 
 	@Autowired
-	private JScrollPane treeScroll;
-	
-	@Autowired
 	private CodeArea codeArea;
 	
 	@Autowired
@@ -86,12 +79,13 @@ public class POIVisualizer {
 	private JSplitPane splitPane;
 	
 	private final TreeObservable treeObservable = new TreeObservable();
-	
+	private static ApplicationContext context; 
 	
 	
     public static void main(String[] args) {
     	try (AbstractApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.xml")) {
-    		POIVisualizer view = ctx.getBean(de.kiwiwings.poi.visualizer.POIVisualizer.class);
+    		context = ctx;
+    		POIVisualizer view = ctx.getBean(POIVisualizer.class);
     		view.init();
     	}
     }
@@ -101,56 +95,14 @@ public class POIVisualizer {
 	void init() {
         contentArea.addTab("binary", codeArea);
         contentArea.addTab("structure", structureArea);
-
-        initFrame();
-		initSplitPane();
-        initMenu();
-        initTree();
-        initCodeArea();
-        
-        visualizerFrame.setVisible(true);
-	}
-	
-	private void initFrame() {
-        visualizerFrame.setSize(1000, 600);
-	}
-
-	private void initSplitPane() {
 		visualizerFrame.add(splitPane);
-	}
-	
-	private void initMenu() {
-		final JMenuBar bar = new JMenuBar();
-        visualizerFrame.setJMenuBar(bar);
-        final JMenu fileMenu = new JMenu("File");
-        bar.add(fileMenu);
-        final JMenuItem openItem = new JMenuItem("Open ...", KeyEvent.VK_O);
-        openItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
-        fileMenu.add(openItem);
-        openItem.addActionListener(e -> loadNewFile());
-        
-        fileMenu.addSeparator();
-        final JMenuItem closeItem = new JMenuItem("Exit", KeyEvent.VK_X);
-        closeItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.CTRL_MASK));
-        fileMenu.add(closeItem);
-        closeItem.addActionListener(e -> visualizerFrame.dispatchEvent(new WindowEvent(visualizerFrame, WindowEvent.WINDOW_CLOSING)));
-	}
-
-	private void initTree() {
-		treeDir.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+		context.getBean("menuFileOpen", JMenuItem.class).addActionListener(e -> loadNewFile());
+		context.getBean("menuFileClose", JMenuItem.class).addActionListener(e -> fireClose());
 		treeDir.addTreeSelectionListener(e -> loadEntry(e));
-	}
-	
-	private void initCodeArea() {
-        codeArea.setData(new ByteArrayEditableData(new byte[]{1, 2, 3}));
-        treeObservable.addObserver((o, arg) -> {
-        	try {
-        		ByteArrayEditableData data = ((TreeObservable)o).getBinarySource().getBinaryData();
-        		codeArea.setData(data);
-        	} catch (IOException|TreeModelLoadException ex) {
-        		// todo
-        	}
-        });
+		treeDir.addMouseListener(MLFactory.mouseClicked(e -> handleEntryClick(e)));
+        treeObservable.addObserver((o, arg) -> updateCodeArea((TreeObservable)o));
+
+        visualizerFrame.setVisible(true);
 	}
 	
 	private void loadNewFile() {
@@ -163,12 +115,26 @@ public class POIVisualizer {
 		final File file = fc.getSelectedFile();
 		try {
 			clearCurrentFile(); 		
-			new TreeModelFileSource(treeRoot, treeObservable).load(file);
+			new TreeModelFileSource(treeRoot).load(file);
 			treeModel.reload(treeRoot);
 		} catch (TreeModelLoadException ex) {
 			JOptionPane.showMessageDialog(visualizerFrame, ex.getMessage());
 			clearCurrentFile();
 		}
+	}
+	
+	private void updateCodeArea(TreeObservable o) {
+    	try {
+    		ByteArrayEditableData data = o.getBinarySource().getBinaryData();
+    		codeArea.setData(data);
+    	} catch (IOException|TreeModelLoadException ex) {
+    		// todo
+    	}
+	}
+	
+	private void fireClose() {
+		final WindowEvent we = new WindowEvent(visualizerFrame, WindowEvent.WINDOW_CLOSING);
+		visualizerFrame.dispatchEvent(we);
 	}
 	
 	private void clearCurrentFile() {
@@ -183,12 +149,24 @@ public class POIVisualizer {
 	}
 	
 	private void loadEntry(final TreeSelectionEvent e) {
-		final DefaultMutableTreeNode node = (DefaultMutableTreeNode)treeDir.getLastSelectedPathComponent();
-		if (node != null && node.getUserObject() != null) {
-			((TreeModelEntry)node.getUserObject()).activate();
+		final DefaultMutableTreeNode node =
+			(DefaultMutableTreeNode)treeDir.getLastSelectedPathComponent();
+		if (node == null) {
+			return;
+		}
+		final Object userObject = node.getUserObject();
+		if (userObject instanceof TreeModelEntry) {
+			((TreeModelEntry)userObject).activate(treeObservable);
 		}
 	}
 	
-	
-	
+	private void handleEntryClick(final MouseEvent mouseEvent) {
+		if (SwingUtilities.isRightMouseButton(mouseEvent)) {
+	        final TreePath path = treeDir.getClosestPathForLocation(mouseEvent.getX(), mouseEvent.getY());
+	        if (path != null) {
+	        	DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+	        	// TODO: show popup for saving the stream
+	        }
+		}
+	}
 }

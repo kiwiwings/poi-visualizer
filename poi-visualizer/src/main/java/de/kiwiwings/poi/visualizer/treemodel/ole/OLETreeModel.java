@@ -15,29 +15,29 @@
    limitations under the License.
 ==================================================================== */
 
-package de.kiwiwings.poi.visualizer.treemodel;
+package de.kiwiwings.poi.visualizer.treemodel.ole;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.apache.poi.poifs.filesystem.DirectoryNode;
-import org.apache.poi.poifs.filesystem.DocumentNode;
 import org.apache.poi.poifs.filesystem.Entry;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.util.IOUtils;
-import org.exbin.utils.binary_data.ByteArrayEditableData;
 
-public class TreeModelPOIFSSource implements TreeModelSource {
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelSource;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
+
+public class OLETreeModel implements TreeModelSource {
 
 	final DefaultMutableTreeNode parent;
-	final TreeObservable treeObservable;
 
-	TreeModelPOIFSSource(final DefaultMutableTreeNode parent, final TreeObservable treeObservable) {
+	public OLETreeModel(final DefaultMutableTreeNode parent) {
 		this.parent = parent;
-		this.treeObservable = treeObservable;
 	}
 
 	@SuppressWarnings("resource")
@@ -62,10 +62,10 @@ public class TreeModelPOIFSSource implements TreeModelSource {
 		final DirectoryNode dn;
 		if (poifsNode instanceof DirectoryNode) {
 			dn = (DirectoryNode)poifsNode;
-			tme = (dn.getParent() == null) ? new POIFSRootEntry(dn, treeNode) : new POIFSDirEntry(dn, treeNode);
+			tme = (dn.getParent() == null) ? new OLERootEntry(dn, treeNode) : new OLEDirEntry(dn, treeNode);
 		} else {
 			dn = null;
-			tme = new POIFSEntry(poifsNode, treeNode);
+			tme = new OLEEntry(poifsNode, treeNode);
 		}
 		treeNode.setUserObject(tme);
 		if (dn != null) {
@@ -76,70 +76,9 @@ public class TreeModelPOIFSSource implements TreeModelSource {
 			}
 		}
 	}
-
-
-	private class POIFSEntry implements TreeModelEntry {
-		final Entry entry;
-		final DefaultMutableTreeNode treeNode;
-		final String oldNodeName;
-		
-		POIFSEntry(final Entry entry, final DefaultMutableTreeNode treeNode) {
-			this.entry = entry;
-			this.treeNode = treeNode;
-			Object obj = treeNode.getUserObject();
-			oldNodeName = (obj != null) ? obj.toString() : null;
-		}
-		@Override
-		public String toString() {
-			return 
-				(oldNodeName != null ? oldNodeName+" (" : "")
-				+ escapeString(entry.getName())
-				+ (oldNodeName != null ? ")" : "");
-		}
-
-		@Override
-		public void activate() {
-			treeObservable.setBinarySource(() -> getData());
-			treeObservable.setStructuredSource(null);
-			treeObservable.notifyObservers();
-		}
-
-		private ByteArrayEditableData getData() throws IOException {
-			final DocumentNode dn = (DocumentNode)entry;
-			final DirectoryNode parent = (DirectoryNode)dn.getParent();
-			final ByteArrayEditableData data;
-			try (final InputStream is = parent.createDocumentInputStream(dn)) {
-				data = new ByteArrayEditableData();
-				data.loadFromStream(is);
-				return data;
-			}
-		}
-
-
-		@Override
-		public void close() throws IOException {
-
-		}
-	}
-
-	private class POIFSDirEntry extends POIFSEntry {
-		POIFSDirEntry(final DirectoryNode dirEntry, final DefaultMutableTreeNode treeNode) {
-			super(dirEntry, treeNode);
-		}
-
-		@Override
-		public void activate() {
-		}
-	}
-
-	private class POIFSRootEntry extends POIFSDirEntry {
-		POIFSRootEntry(final DirectoryNode dirEntry, final DefaultMutableTreeNode treeNode) {
-			super(dirEntry, treeNode);
-		}
-
-		@Override
-		public void close() throws IOException {
-			((DirectoryNode)this.entry).getFileSystem().close();
-		}
-	}
 }
+
+
+
+
+

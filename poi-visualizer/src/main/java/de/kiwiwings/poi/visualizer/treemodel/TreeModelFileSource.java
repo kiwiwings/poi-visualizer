@@ -28,14 +28,15 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import org.apache.poi.poifs.filesystem.FileMagic;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 
+import de.kiwiwings.poi.visualizer.treemodel.ole.OLETreeModel;
+import de.kiwiwings.poi.visualizer.treemodel.opc.OPCTreeModel;
+
 public class TreeModelFileSource implements TreeModelSource {
 	
 	final DefaultMutableTreeNode parent;
-	final TreeObservable treeObservable;
 	
-	public TreeModelFileSource(final DefaultMutableTreeNode parent, final TreeObservable treeObservable) {
+	public TreeModelFileSource(final DefaultMutableTreeNode parent) {
 		this.parent = parent;
-		this.treeObservable = treeObservable;
 	}
 	
 	public void load(final Object source) throws TreeModelLoadException {
@@ -54,10 +55,10 @@ public class TreeModelFileSource implements TreeModelSource {
 
 		switch (fm) {
 		case OLE2:
-			new TreeModelPOIFSSource(parent, treeObservable).load(source);
+			new OLETreeModel(parent).load(source);
 			break;
 		case OOXML:
-			new TreeModelOPCSource(parent, treeObservable).load(source);
+			new OPCTreeModel(parent).load(source);
 			break;
 		default:
 			throw new TreeModelLoadException("File with file magic '"+fm+"' can't be processed.");

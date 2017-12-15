@@ -15,37 +15,27 @@
    limitations under the License.
 ==================================================================== */
 
-package de.kiwiwings.poi.visualizer.treemodel;
+package de.kiwiwings.poi.visualizer.util;
 
-import java.io.Closeable;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.List;
 
-public interface TreeModelEntry extends Closeable {
-	// replace control characters
-	static final Pattern CTRL_CHR = Pattern.compile("\\p{Cc}"); 
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 
-	/**
-	 * Escape string suitable for display in a tree
-	 * @param string the raw string
-	 * @return the escaped string
-	 */
-	default String escapeString(final String string) {
-		final Matcher match = CTRL_CHR.matcher(string);
-		final StringBuffer sb = new StringBuffer();
-		while (match.find()) {
-			int cp = match.group().codePointAt(0);
-			match.appendReplacement(sb, String.format("\\\\%02X", cp));
+public class SpringJMenuFactory {
+	public static JMenuBar init(JMenuBar menuBar, List<Object> menus) {
+		if (menus != null) {
+			JMenu menu = null;
+			for (Object o : menus) {
+				if (o instanceof JMenu) {
+					menu = (JMenu)o;
+					menuBar.add(menu);
+				} else if (o instanceof JMenuItem && menu != null) {
+					menu.add((JMenuItem)o);
+				}
+			}
 		}
-		match.appendTail(sb);
-		return sb.toString();
+		return menuBar;
 	}
-	
-	
-	String toString();
-	
-	/**
-	 * Entry is clicked/activate - update the observable(s)
-	 */
-	void activate(final TreeObservable treeObservable);
 }

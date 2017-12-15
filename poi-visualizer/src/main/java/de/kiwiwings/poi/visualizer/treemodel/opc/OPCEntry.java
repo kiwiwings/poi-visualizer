@@ -1,0 +1,106 @@
+/* ====================================================================
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+==================================================================== */
+
+package de.kiwiwings.poi.visualizer.treemodel.opc;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.swing.tree.DefaultMutableTreeNode;
+
+import org.apache.poi.openxml4j.opc.PackagePart;
+import org.apache.poi.openxml4j.opc.internal.PackagePropertiesPart;
+import org.apache.poi.poifs.filesystem.FileMagic;
+import org.apache.poi.util.IOUtils;
+import org.apache.poi.util.LocaleUtil;
+import org.apache.poi.util.TempFile;
+import org.exbin.utils.binary_data.ByteArrayEditableData;
+
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
+import de.kiwiwings.poi.visualizer.treemodel.ole.OLETreeModel;
+
+public class OPCEntry implements TreeModelEntry {
+	final PackagePart packagePart;
+	final DefaultMutableTreeNode treeNode;
+	File oleFile;
+	
+	OPCEntry(final PackagePart packagePart, final DefaultMutableTreeNode treeNode) {
+		this.packagePart = packagePart;
+		this.treeNode = treeNode;
+	}
+	
+	@Override
+	public String toString() {
+		return escapeString(packagePart.getPartName().getName().replaceAll(".*/", ""));
+	}
+	
+	@Override
+	public void activate(final TreeObservable treeObservable) {
+		treeObservable.setBinarySource(() -> getData());
+		treeObservable.setStructuredSource(null);
+		treeObservable.notifyObservers();
+	}
+	
+	private ByteArrayEditableData getData() throws IOException, TreeModelLoadException {
+		if (packagePart instanceof PackagePropertiesPart) {
+			return new ByteArrayEditableData("Property parts can't be exported.".getBytes(LocaleUtil.CHARSET_1252));
+		}
+		
+		FileMagic fm;
+		try (InputStream is = FileMagic.prepareToCheckMagic(packagePart.getInputStream())) {
+			fm = FileMagic.valueOf(is);
+			if (fm == FileMagic.OLE2 && oleFile == null) {
+				oleFile = copyToTempFile(is);
+				OLETreeModel poifsNode = new OLETreeModel(treeNode);
+				poifsNode.load(oleFile);
+			}
+			final ByteArrayEditableData data;
+			if (oleFile == null) {
+				data = new ByteArrayEditableData();
+				data.loadFromStream(is);
+			} else {
+				data = new ByteArrayEditableData("OLE data".getBytes());
+			}
+			return data;
+		}
+		
+	}
+
+	private File copyToTempFile(InputStream is) throws IOException {
+		String partName = packagePart.getPartName().getName();
+		partName = partName.substring(partName.lastIndexOf('/')+1);
+		final int idx = partName.lastIndexOf('.');
+		final String prefix = ((idx == -1) ? partName : partName.substring(0, idx)) + "-";
+		final String suffix = (idx == -1 || idx == partName.length()-1) ? "" : partName.substring(idx);
+
+		final File oleFile = TempFile.createTempFile(prefix, suffix);
+		try (FileOutputStream fos = new FileOutputStream(oleFile)) {
+			IOUtils.copy(is, fos);
+		}
+		oleFile.deleteOnExit();
+		return oleFile;
+	}
+	
+	@Override
+	public void close() throws IOException {
+		
+	}
+}

@@ -1,3 +1,20 @@
+<!-- ====================================================================
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+====================================================================  -->
+
 <?xml version="1.0" encoding="UTF-8"?>
 <beans
 	xmlns="http://www.springframework.org/schema/beans"
@@ -9,14 +26,9 @@
 	http://www.springframework.org/schema/context
 	http://www.springframework.org/schema/context/spring-context.xsd"
 	>
-	
+
 	<context:component-scan base-package="de.kiwiwings.poi.visualizer" />
 	<context:annotation-config />
-
-	<bean id="visualizerFrame" class="javax.swing.JFrame">
-		<constructor-arg index="0" value="POI Visualizer" />
-		<property name="defaultCloseOperation" value="#{T(javax.swing.JFrame).EXIT_ON_CLOSE}" />
-	</bean>
 
 	<bean id="treeRoot" class="javax.swing.tree.DefaultMutableTreeNode">
 		<property name="userObject" value="not loaded ..." />
@@ -28,6 +40,7 @@
 
 	<bean id="treeDir" class="javax.swing.JTree">
 		<property name="model" ref="treeModel" />
+ 		<property name="selectionModel.selectionMode" value="#{T(javax.swing.tree.TreeSelectionModel).SINGLE_TREE_SELECTION}"/>
 	</bean>
 
 	<bean id="treeScroll" class="javax.swing.JScrollPane">
@@ -35,6 +48,9 @@
 	</bean>
 
 	<bean id="codeArea" class="org.exbin.deltahex.swing.CodeArea">
+		<property name="data">
+			<bean class="org.exbin.utils.binary_data.ByteArrayEditableData"/>
+		</property>
 	</bean>
 
 	<bean id="structureArea" class="javax.swing.JPanel">
@@ -49,6 +65,56 @@
 		<property name="dividerLocation" value="150" />
 		<property name="oneTouchExpandable" value="true" />
 		<property name="continuousLayout" value="true" />
+	</bean>
+
+	<bean id="menuFileOpen" class="javax.swing.JMenuItem">
+		<property name="text" value="Open ..."/>
+		<property name="mnemonic" value="#{T(java.awt.event.KeyEvent).VK_O}"/>
+		<property name="accelerator">
+			<bean class="javax.swing.KeyStroke" factory-method="getKeyStroke">
+				<constructor-arg value="#{T(java.awt.event.KeyEvent).VK_O}"/>
+				<constructor-arg value="#{T(java.awt.event.ActionEvent).CTRL_MASK}"/>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="menuFileClose" class="javax.swing.JMenuItem">
+		<property name="text" value="Exit"/>
+		<property name="mnemonic" value="#{T(java.awt.event.KeyEvent).VK_Q}"/>
+		<property name="accelerator">
+			<bean class="javax.swing.KeyStroke" factory-method="getKeyStroke">
+				<constructor-arg value="#{T(java.awt.event.KeyEvent).VK_Q}"/>
+				<constructor-arg value="#{T(java.awt.event.ActionEvent).CTRL_MASK}"/>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="visualizerFrame" class="javax.swing.JFrame">
+		<constructor-arg index="0" value="POI Visualizer" />
+		<property name="defaultCloseOperation" value="#{T(javax.swing.JFrame).EXIT_ON_CLOSE}" />
+		<property name="jMenuBar">
+			<bean class="de.kiwiwings.poi.visualizer.util.SpringJMenuFactory" factory-method="init">
+				<constructor-arg>
+					<bean class="javax.swing.JMenuBar"/>
+				</constructor-arg>
+				<constructor-arg>
+					<list>
+						<bean class="javax.swing.JMenu">
+							<property name="text" value="File"/>
+						</bean>
+						<ref bean="menuFileOpen"/>
+						<ref bean="menuFileClose"/>
+					</list>
+				</constructor-arg>
+			</bean>
+		</property>
+		<property name="size">
+			<bean class="java.awt.Dimension">
+				<constructor-arg value="1000"/>
+				<constructor-arg value="600"/>
+			</bean>
+		</property>
+		<property name="locationByPlatform" value="true"/>
 	</bean>
 
 </beans>

@@ -15,37 +15,20 @@
    limitations under the License.
 ==================================================================== */
 
-package de.kiwiwings.poi.visualizer.treemodel;
+package de.kiwiwings.poi.visualizer.treemodel.ole;
 
-import java.io.Closeable;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import javax.swing.tree.DefaultMutableTreeNode;
 
-public interface TreeModelEntry extends Closeable {
-	// replace control characters
-	static final Pattern CTRL_CHR = Pattern.compile("\\p{Cc}"); 
+import org.apache.poi.poifs.filesystem.DirectoryNode;
 
-	/**
-	 * Escape string suitable for display in a tree
-	 * @param string the raw string
-	 * @return the escaped string
-	 */
-	default String escapeString(final String string) {
-		final Matcher match = CTRL_CHR.matcher(string);
-		final StringBuffer sb = new StringBuffer();
-		while (match.find()) {
-			int cp = match.group().codePointAt(0);
-			match.appendReplacement(sb, String.format("\\\\%02X", cp));
-		}
-		match.appendTail(sb);
-		return sb.toString();
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
+
+public class OLEDirEntry extends OLEEntry {
+	OLEDirEntry(final DirectoryNode dirEntry, final DefaultMutableTreeNode treeNode) {
+		super(dirEntry, treeNode);
 	}
-	
-	
-	String toString();
-	
-	/**
-	 * Entry is clicked/activate - update the observable(s)
-	 */
-	void activate(final TreeObservable treeObservable);
+
+	@Override
+	public void activate(final TreeObservable treeObservable) {
+	}
 }
