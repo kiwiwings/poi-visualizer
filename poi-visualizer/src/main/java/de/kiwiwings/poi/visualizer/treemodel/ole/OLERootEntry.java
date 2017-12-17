@@ -22,14 +22,27 @@ import java.io.IOException;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.apache.poi.poifs.filesystem.DirectoryNode;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
+@Component(value="OLERootEntry")
+@Scope("prototype")
 public class OLERootEntry extends OLEDirEntry {
-	OLERootEntry(final DirectoryNode dirEntry, final DefaultMutableTreeNode treeNode) {
+	public OLERootEntry(final DirectoryNode dirEntry, final DefaultMutableTreeNode treeNode) {
 		super(dirEntry, treeNode);
 	}
 
 	@Override
 	public void close() throws IOException {
 		((DirectoryNode)this.entry).getFileSystem().close();
+	}
+	
+	@Override
+	public void activate() {
+		if (surrugateEntry != null) {
+			surrugateEntry.activate();
+		} else {
+			super.activate();
+		}
 	}
 }

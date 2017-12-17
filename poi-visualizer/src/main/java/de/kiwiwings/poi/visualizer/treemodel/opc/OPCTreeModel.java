@@ -30,13 +30,22 @@ import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.openxml4j.opc.PackageAccess;
 import org.apache.poi.openxml4j.opc.PackagePart;
 import org.apache.poi.util.IOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelSource;
 
+@Component
+@Scope("prototype")
 public class OPCTreeModel implements TreeModelSource {
 	
 	final DefaultMutableTreeNode parent;
+
+	@Autowired
+	private ApplicationContext appContext;
 	
 	public OPCTreeModel(final DefaultMutableTreeNode parent) {
 		this.parent = parent;
@@ -50,7 +59,7 @@ public class OPCTreeModel implements TreeModelSource {
 		OPCPackage opc = null;
 		try {
 			opc = OPCPackage.open((File)source, PackageAccess.READ);
-			OPCRootEntry opcRoot = new OPCRootEntry(opc, parent);
+			OPCRootEntry opcRoot = appContext.getBean(OPCRootEntry.class, opc, parent);
 			parent.setUserObject(opcRoot);
 
 			final Map<String,DefaultMutableTreeNode> mapFolders = new HashMap<>();
@@ -68,7 +77,7 @@ public class OPCTreeModel implements TreeModelSource {
 						dir = mapFolders.get(path);
 					} else {
 						dir = new DefaultMutableTreeNode();
-						final OPCDirEntry entry = new OPCDirEntry(path, dir);
+						final OPCDirEntry entry = appContext.getBean(OPCDirEntry.class, path, dir);
 						dir.setUserObject(entry);
 						mapFolders.put(path, dir);
 						parDir.add(dir);
@@ -86,7 +95,7 @@ public class OPCTreeModel implements TreeModelSource {
 					mapFiles.put(parPath, listFiles);
 				}
 				final DefaultMutableTreeNode node = new DefaultMutableTreeNode();
-				node.setUserObject(new OPCEntry(pp, node));
+				node.setUserObject(appContext.getBean(OPCEntry.class, pp, node));
 				listFiles.add(node);
 			}
 

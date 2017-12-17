@@ -22,16 +22,26 @@ import java.io.IOException;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.exbin.utils.binary_data.ByteArrayEditableData;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 
+@Component(value="OPCDirEntry")
+@Primary
+@Scope("prototype")
 public class OPCDirEntry implements TreeModelEntry {
 	final String path;
 	@SuppressWarnings("unused")
 	final DefaultMutableTreeNode treeNode;
+
+	@Autowired
+	TreeObservable treeObservable;
 	
-	OPCDirEntry(final String path, final DefaultMutableTreeNode treeNode) {
+	public OPCDirEntry(final String path, final DefaultMutableTreeNode treeNode) {
 		this.path = path;
 		this.treeNode = treeNode;
 	}
@@ -42,7 +52,7 @@ public class OPCDirEntry implements TreeModelEntry {
 	}
 
 	@Override
-	public void activate(final TreeObservable treeObservable) {
+	public void activate() {
 		treeObservable.setBinarySource(() -> new ByteArrayEditableData());
 		treeObservable.setStructuredSource(null);
 		treeObservable.notifyObservers();

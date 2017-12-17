@@ -20,11 +20,15 @@ package de.kiwiwings.poi.visualizer.treemodel;
 
 import java.util.Observable;
 
+import org.springframework.stereotype.Component;
+
 import de.kiwiwings.poi.visualizer.BinarySource;
 import de.kiwiwings.poi.visualizer.StructuredSource;
 
+@Component(value="treeObserver")
 public class TreeObservable extends Observable {
 	private BinarySource binarySource;
+	private String binaryFileName;
 	private StructuredSource structuredSource;
 
 	public BinarySource getBinarySource() {
@@ -36,6 +40,14 @@ public class TreeObservable extends Observable {
 		setChanged();
 	}
 
+	public String getBinaryFileName() {
+		return binaryFileName;
+	}
+	
+	public void setBinaryFileName(final String fileName) {
+		this.binaryFileName = fileName;
+	}
+	
 	public StructuredSource getStructuredSource() {
 		return structuredSource;
 	}

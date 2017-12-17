@@ -27,13 +27,23 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.apache.poi.poifs.filesystem.FileMagic;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import de.kiwiwings.poi.visualizer.treemodel.ole.OLETreeModel;
 import de.kiwiwings.poi.visualizer.treemodel.opc.OPCTreeModel;
 
+
+@Component
+@Scope("prototype")
 public class TreeModelFileSource implements TreeModelSource {
 	
 	final DefaultMutableTreeNode parent;
+
+	@Autowired
+	private ApplicationContext appContext;
 	
 	public TreeModelFileSource(final DefaultMutableTreeNode parent) {
 		this.parent = parent;
@@ -53,15 +63,18 @@ public class TreeModelFileSource implements TreeModelSource {
 			throw new TreeModelLoadException("File Magic can't be determined.", ex);
 		}
 
+		final Class<? extends TreeModelSource> treeModelCls;
 		switch (fm) {
 		case OLE2:
-			new OLETreeModel(parent).load(source);
+			treeModelCls = OLETreeModel.class;
 			break;
 		case OOXML:
-			new OPCTreeModel(parent).load(source);
+			treeModelCls = OPCTreeModel.class;
 			break;
 		default:
 			throw new TreeModelLoadException("File with file magic '"+fm+"' can't be processed.");
 		}
+
+		appContext.getBean(treeModelCls, parent).load(source);
 	}
 }

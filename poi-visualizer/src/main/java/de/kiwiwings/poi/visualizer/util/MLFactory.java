@@ -55,4 +55,11 @@ public class MLFactory {
             @Override public void mouseExited(MouseEvent e) { c.accept(e); }
         };
     }
+
+    public static MouseListener mousePopup(Consumer<MouseEvent> c) {
+        return new MouseAdapter() {
+            @Override public void mousePressed(MouseEvent e) { c.accept(e); }
+            @Override public void mouseReleased(MouseEvent e) { c.accept(e); }
+        };
+    }
 }

@@ -20,15 +20,21 @@ package de.kiwiwings.poi.visualizer.treemodel.ole;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.apache.poi.poifs.filesystem.DirectoryNode;
+import org.exbin.utils.binary_data.ByteArrayEditableData;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
-
+@Component(value="OLEDirEntry")
+@Scope("prototype")
 public class OLEDirEntry extends OLEEntry {
-	OLEDirEntry(final DirectoryNode dirEntry, final DefaultMutableTreeNode treeNode) {
+	public OLEDirEntry(final DirectoryNode dirEntry, final DefaultMutableTreeNode treeNode) {
 		super(dirEntry, treeNode);
 	}
 
 	@Override
-	public void activate(final TreeObservable treeObservable) {
+	public void activate() {
+		treeObservable.setBinarySource(() -> new ByteArrayEditableData());
+		treeObservable.setStructuredSource(null);
+		treeObservable.notifyObservers();
 	}
 }

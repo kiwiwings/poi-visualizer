@@ -47,5 +47,5 @@ public interface TreeModelEntry extends Closeable {
 	/**
 	 * Entry is clicked/activate - update the observable(s)
 	 */
-	void activate(final TreeObservable treeObservable);
+	void activate();
 }

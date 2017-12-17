@@ -26,16 +26,24 @@ import org.apache.poi.poifs.filesystem.DirectoryNode;
 import org.apache.poi.poifs.filesystem.Entry;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.util.IOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelSource;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 
+@Component
+@Scope("prototype")
 public class OLETreeModel implements TreeModelSource {
 
 	final DefaultMutableTreeNode parent;
 
+	@Autowired
+	private ApplicationContext appContext;
+	
 	public OLETreeModel(final DefaultMutableTreeNode parent) {
 		this.parent = parent;
 	}
@@ -58,18 +66,19 @@ public class OLETreeModel implements TreeModelSource {
 	}
 
 	private void traverseFileSystem(Entry poifsNode, DefaultMutableTreeNode treeNode) {
-		final TreeModelEntry tme;
-		final DirectoryNode dn;
-		if (poifsNode instanceof DirectoryNode) {
-			dn = (DirectoryNode)poifsNode;
-			tme = (dn.getParent() == null) ? new OLERootEntry(dn, treeNode) : new OLEDirEntry(dn, treeNode);
+		final String qualifier;
+		if (poifsNode.getParent() == null) {
+			qualifier = "OLERootEntry";
+		} else if (poifsNode instanceof DirectoryNode) {
+			qualifier = "OLEDirEntry";
 		} else {
-			dn = null;
-			tme = new OLEEntry(poifsNode, treeNode);
+			qualifier = "OLEEntry";
 		}
-		treeNode.setUserObject(tme);
-		if (dn != null) {
-			for (Entry poifsChild : dn) {
+
+		treeNode.setUserObject(appContext.getBean(qualifier, poifsNode, treeNode));
+
+		if (poifsNode instanceof DirectoryNode) {
+			for (Entry poifsChild : ((DirectoryNode)poifsNode)) {
 				DefaultMutableTreeNode treeChild = new DefaultMutableTreeNode();
 				treeNode.add(treeChild);
 				traverseFileSystem(poifsChild, treeChild);

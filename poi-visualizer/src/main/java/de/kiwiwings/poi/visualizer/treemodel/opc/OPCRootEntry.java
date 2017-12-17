@@ -22,7 +22,11 @@ import java.io.IOException;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.apache.poi.openxml4j.opc.OPCPackage;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
+@Component(value="OPCRootEntry")
+@Scope("prototype")
 public class OPCRootEntry extends OPCDirEntry {
 	final OPCPackage opcPackage;
 	OPCRootEntry(final OPCPackage opcPackage, final DefaultMutableTreeNode treeNode) {

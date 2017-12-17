@@ -18,6 +18,7 @@
 package de.kiwiwings.poi.visualizer.treemodel.opc;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,18 +32,31 @@ import org.apache.poi.util.IOUtils;
 import org.apache.poi.util.LocaleUtil;
 import org.apache.poi.util.TempFile;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 import de.kiwiwings.poi.visualizer.treemodel.ole.OLETreeModel;
 
+@Component(value="OPCEntry")
+@Scope("prototype")
 public class OPCEntry implements TreeModelEntry {
 	final PackagePart packagePart;
 	final DefaultMutableTreeNode treeNode;
 	File oleFile;
 	
-	OPCEntry(final PackagePart packagePart, final DefaultMutableTreeNode treeNode) {
+	@Autowired
+	TreeObservable treeObservable;
+
+	@Autowired
+	private ApplicationContext appContext;
+	
+	
+	public OPCEntry(final PackagePart packagePart, final DefaultMutableTreeNode treeNode) {
 		this.packagePart = packagePart;
 		this.treeNode = treeNode;
 	}
@@ -53,8 +67,9 @@ public class OPCEntry implements TreeModelEntry {
 	}
 	
 	@Override
-	public void activate(final TreeObservable treeObservable) {
+	public void activate() {
 		treeObservable.setBinarySource(() -> getData());
+		treeObservable.setBinaryFileName(toString());
 		treeObservable.setStructuredSource(null);
 		treeObservable.notifyObservers();
 	}
@@ -66,18 +81,20 @@ public class OPCEntry implements TreeModelEntry {
 		
 		FileMagic fm;
 		try (InputStream is = FileMagic.prepareToCheckMagic(packagePart.getInputStream())) {
+			final ByteArrayEditableData data = new ByteArrayEditableData();
 			fm = FileMagic.valueOf(is);
-			if (fm == FileMagic.OLE2 && oleFile == null) {
-				oleFile = copyToTempFile(is);
-				OLETreeModel poifsNode = new OLETreeModel(treeNode);
-				poifsNode.load(oleFile);
-			}
-			final ByteArrayEditableData data;
-			if (oleFile == null) {
-				data = new ByteArrayEditableData();
-				data.loadFromStream(is);
+			if (fm == FileMagic.OLE2) {
+				if (oleFile == null) {
+					oleFile = copyToTempFile(is);
+					OLETreeModel poifsNode = appContext.getBean(OLETreeModel.class, treeNode);
+					poifsNode.load(oleFile);
+				}
+				
+				try (InputStream is2 = new FileInputStream(oleFile)) {
+					data.loadFromStream(is2);
+				}
 			} else {
-				data = new ByteArrayEditableData("OLE data".getBytes());
+				data.loadFromStream(is);
 			}
 			return data;
 		}
@@ -91,12 +108,12 @@ public class OPCEntry implements TreeModelEntry {
 		final String prefix = ((idx == -1) ? partName : partName.substring(0, idx)) + "-";
 		final String suffix = (idx == -1 || idx == partName.length()-1) ? "" : partName.substring(idx);
 
-		final File oleFile = TempFile.createTempFile(prefix, suffix);
-		try (FileOutputStream fos = new FileOutputStream(oleFile)) {
+		final File of = TempFile.createTempFile(prefix, suffix);
+		try (FileOutputStream fos = new FileOutputStream(of)) {
 			IOUtils.copy(is, fos);
 		}
-		oleFile.deleteOnExit();
-		return oleFile;
+		of.deleteOnExit();
+		return of;
 	}
 	
 	@Override

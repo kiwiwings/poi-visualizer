@@ -26,32 +26,40 @@ import org.apache.poi.poifs.filesystem.DirectoryNode;
 import org.apache.poi.poifs.filesystem.DocumentNode;
 import org.apache.poi.poifs.filesystem.Entry;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 
+@Component(value="OLEEntry")
+@Scope("prototype")
 public class OLEEntry implements TreeModelEntry {
 	final Entry entry;
 	final DefaultMutableTreeNode treeNode;
-	final String oldNodeName;
+	final TreeModelEntry surrugateEntry;
+
+	@Autowired
+	TreeObservable treeObservable;
 	
-	OLEEntry(final Entry entry, final DefaultMutableTreeNode treeNode) {
+	public OLEEntry(final Entry entry, final DefaultMutableTreeNode treeNode) {
 		this.entry = entry;
 		this.treeNode = treeNode;
-		Object obj = treeNode.getUserObject();
-		oldNodeName = (obj != null) ? obj.toString() : null;
+		Object oldUserObject = treeNode.getUserObject();
+		surrugateEntry = (oldUserObject instanceof TreeModelEntry) ? (TreeModelEntry)oldUserObject : null;
 	}
 	@Override
 	public String toString() {
-		return 
-			(oldNodeName != null ? oldNodeName+" (" : "")
-			+ escapeString(entry.getName())
-			+ (oldNodeName != null ? ")" : "");
+		final String name = escapeString(entry.getName());
+		return (treeNode.getParent() == null || surrugateEntry == null)
+				? name : surrugateEntry+" ("+name+")";
 	}
 
 	@Override
-	public void activate(final TreeObservable treeObservable) {
+	public void activate() {
 		treeObservable.setBinarySource(() -> getData());
+		treeObservable.setBinaryFileName(escapeString(entry.getName()));
 		treeObservable.setStructuredSource(null);
 		treeObservable.notifyObservers();
 	}
