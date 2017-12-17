@@ -17,30 +17,20 @@
 
 package de.kiwiwings.poi.visualizer;
 
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowEvent;
-import java.io.File;
 import java.io.IOException;
 
 import javax.annotation.PostConstruct;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextPane;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
 
-import org.apache.poi.util.IOUtils;
 import org.exbin.deltahex.swing.CodeArea;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,11 +38,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelFileSource;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 import de.kiwiwings.poi.visualizer.util.MLFactory;
 import de.kiwiwings.poi.visualizer.util.WLFactory;
+import de.kiwiwings.poi.visualizer.xmleditor.XMLEditor;
 
 @Component
 public class POIMainFrame extends JFrame {
@@ -86,6 +76,9 @@ public class POIMainFrame extends JFrame {
 	@Autowired
 	private POIContextMenu contextMenu;	
 	
+	@Autowired
+	private XMLEditor xmlEditor;
+	
 	private boolean isInit = false;
 	
 	public POIMainFrame() {
@@ -105,8 +98,10 @@ public class POIMainFrame extends JFrame {
 		setJMenuBar(topMenu);
 		
 		contextMenu.init();
-
+		xmlEditor.init();
+		
         contentArea.addTab("binary", codeArea);
+        contentArea.addTab("xml", xmlEditor);
         contentArea.addTab("structure", structureArea);
 		add(splitPane);
 

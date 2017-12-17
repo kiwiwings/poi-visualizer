@@ -17,8 +17,12 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.ole;
 
+import static de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceOrigin.MENU_EDIT_APPLY;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Observable;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -31,12 +35,14 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
 
 @Component(value="OLEEntry")
 @Scope("prototype")
 public class OLEEntry implements TreeModelEntry {
-	final Entry entry;
+	Entry entry;
 	final DefaultMutableTreeNode treeNode;
 	final TreeModelEntry surrugateEntry;
 
@@ -59,9 +65,29 @@ public class OLEEntry implements TreeModelEntry {
 	@Override
 	public void activate() {
 		treeObservable.setBinarySource(() -> getData());
-		treeObservable.setBinaryFileName(escapeString(entry.getName()));
+		treeObservable.setSourceType(SourceType.octet);
+		treeObservable.setFileName(escapeString(entry.getName()));
 		treeObservable.setStructuredSource(null);
 		treeObservable.notifyObservers();
+	}
+
+	@Override
+	public void update(Observable o, Object arg) {
+		if (surrugateEntry != null) {
+			surrugateEntry.update(o, arg);
+			return;
+		}
+		
+		if (MENU_EDIT_APPLY.equals(arg)) {
+			if (entry instanceof DocumentNode) {
+				try (InputStream is = treeObservable.getBinarySource().getBinaryData().getDataInputStream()) {
+					entry = entry.getParent().createDocument(entry.getName(), is);
+				} catch (TreeModelLoadException|IOException e) {
+					// TODO: error message
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
 	private ByteArrayEditableData getData() throws IOException {

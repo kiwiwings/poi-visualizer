@@ -18,8 +18,11 @@
 
 package de.kiwiwings.poi.visualizer.treemodel;
 
+import java.io.IOException;
 import java.util.Observable;
+import java.util.Observer;
 
+import org.exbin.utils.binary_data.ByteArrayEditableData;
 import org.springframework.stereotype.Component;
 
 import de.kiwiwings.poi.visualizer.BinarySource;
@@ -27,25 +30,47 @@ import de.kiwiwings.poi.visualizer.StructuredSource;
 
 @Component(value="treeObserver")
 public class TreeObservable extends Observable {
+	public enum SourceType {
+		empty, octet, text_xml, text_plain, image_jpeg, image_png
+	}
+
+	public enum SourceOrigin {
+		MENU_EDIT_APPLY;
+	}
+	
+	
 	private BinarySource binarySource;
-	private String binaryFileName;
+	private ByteArrayEditableData cachedBinary;
+	private String fileName;
 	private StructuredSource structuredSource;
+	private SourceType sourceType;
 
 	public BinarySource getBinarySource() {
-		return binarySource;
+		return () -> getCachedBinary();
 	}
 
 	public void setBinarySource(BinarySource binarySource) {
 		this.binarySource = binarySource;
+		this.cachedBinary = null;
 		setChanged();
 	}
 
-	public String getBinaryFileName() {
-		return binaryFileName;
+	public SourceType getSourceType() {
+		return sourceType;
 	}
 	
-	public void setBinaryFileName(final String fileName) {
-		this.binaryFileName = fileName;
+	public void setSourceType(SourceType sourceType) {
+		this.sourceType = sourceType;
+		setChanged();
+	}
+	
+	public String getFileName() {
+		return fileName;
+	}
+	
+	public void setFileName(final String fileName) {
+		this.fileName = fileName;
+		setChanged();
 	}
 	
 	public StructuredSource getStructuredSource() {
@@ -56,5 +81,24 @@ public class TreeObservable extends Observable {
 		this.structuredSource = structuredSource;
 		setChanged();
 	}
-
+	
+	public void setTreeEntryListener(TreeModelEntry entry) {
+		deleteObserver(new Observer() {
+			public void update(Observable o, Object arg) {}
+			public boolean equals(Object o) {
+				return o instanceof TreeModelEntry;
+			}
+		});
+		
+		if (entry != null) {
+			addObserver(entry);
+		}
+	}
+	
+	private ByteArrayEditableData getCachedBinary() throws IOException, TreeModelLoadException {
+		if (cachedBinary == null) {
+			cachedBinary = binarySource.getBinaryData();
+		}
+		return cachedBinary;
+	}
 }

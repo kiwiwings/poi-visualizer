@@ -15,29 +15,34 @@
    limitations under the License.
 ==================================================================== */
 
-package de.kiwiwings.poi.visualizer.treemodel.ole;
+package de.kiwiwings.poi.visualizer.xmleditor;
 
-import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.text.StyledEditorKit;
+import javax.swing.text.ViewFactory;
 
-import org.apache.poi.poifs.filesystem.DirectoryNode;
-import org.exbin.utils.binary_data.ByteArrayEditableData;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
+/**
+ * The EditorKit for xml document
+ * 
+ * @see <a href="https://github.com/kdekooter/xml-text-editor">xml-text-editor</a>
+ */
+public class XmlEditorKit extends StyledEditorKit {
 
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+    private static final long serialVersionUID = 2969169649596107757L;
+    private ViewFactory xmlViewFactory;
 
-@Component(value="OLEDirEntry")
-@Scope("prototype")
-public class OLEDirEntry extends OLEEntry {
-	public OLEDirEntry(final DirectoryNode dirEntry, final DefaultMutableTreeNode treeNode) {
-		super(dirEntry, treeNode);
-	}
+    public XmlEditorKit() {
+        xmlViewFactory = new XmlViewFactory();
+    }
+    
+    @Override
+    public ViewFactory getViewFactory() {
+        return xmlViewFactory;
+    }
 
-	@Override
-	public void activate() {
-		treeObservable.setBinarySource(() -> new ByteArrayEditableData());
-		treeObservable.setSourceType(SourceType.empty);
-		treeObservable.setStructuredSource(null);
-		treeObservable.notifyObservers();
-	}
+    @Override
+    public String getContentType() {
+        return "text/xml";
+    }
+
+    
 }

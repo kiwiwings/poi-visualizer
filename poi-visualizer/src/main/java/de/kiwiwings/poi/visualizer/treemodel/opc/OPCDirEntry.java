@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
 
 @Component(value="OPCDirEntry")
 @Primary
@@ -54,6 +55,7 @@ public class OPCDirEntry implements TreeModelEntry {
 	@Override
 	public void activate() {
 		treeObservable.setBinarySource(() -> new ByteArrayEditableData());
+		treeObservable.setSourceType(SourceType.empty);
 		treeObservable.setStructuredSource(null);
 		treeObservable.notifyObservers();
 	}

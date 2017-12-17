@@ -58,7 +58,7 @@ public class OPCTreeModel implements TreeModelSource {
 		
 		OPCPackage opc = null;
 		try {
-			opc = OPCPackage.open((File)source, PackageAccess.READ);
+			opc = OPCPackage.open((File)source, PackageAccess.READ_WRITE);
 			OPCRootEntry opcRoot = appContext.getBean(OPCRootEntry.class, opc, parent);
 			parent.setUserObject(opcRoot);
 

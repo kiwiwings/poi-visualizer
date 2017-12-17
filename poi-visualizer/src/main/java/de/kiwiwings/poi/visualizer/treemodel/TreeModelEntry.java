@@ -18,10 +18,12 @@
 package de.kiwiwings.poi.visualizer.treemodel;
 
 import java.io.Closeable;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public interface TreeModelEntry extends Closeable {
+public interface TreeModelEntry extends Closeable, Observer {
 	// replace control characters
 	static final Pattern CTRL_CHR = Pattern.compile("\\p{Cc}"); 
 
@@ -41,6 +43,7 @@ public interface TreeModelEntry extends Closeable {
 		return sb.toString();
 	}
 	
+	default void update(Observable o, Object arg) {}
 	
 	String toString();
 	

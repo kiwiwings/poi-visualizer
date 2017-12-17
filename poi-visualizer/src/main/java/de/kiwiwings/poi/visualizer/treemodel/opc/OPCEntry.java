@@ -17,15 +17,20 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.opc;
 
+import static de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceOrigin.MENU_EDIT_APPLY;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Observable;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.apache.poi.openxml4j.opc.PackagePart;
+import org.apache.poi.openxml4j.opc.PackagePartName;
 import org.apache.poi.openxml4j.opc.internal.PackagePropertiesPart;
 import org.apache.poi.poifs.filesystem.FileMagic;
 import org.apache.poi.util.IOUtils;
@@ -40,12 +45,13 @@ import org.springframework.stereotype.Component;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
 import de.kiwiwings.poi.visualizer.treemodel.ole.OLETreeModel;
 
 @Component(value="OPCEntry")
 @Scope("prototype")
 public class OPCEntry implements TreeModelEntry {
-	final PackagePart packagePart;
+	PackagePart packagePart;
 	final DefaultMutableTreeNode treeNode;
 	File oleFile;
 	
@@ -69,10 +75,36 @@ public class OPCEntry implements TreeModelEntry {
 	@Override
 	public void activate() {
 		treeObservable.setBinarySource(() -> getData());
-		treeObservable.setBinaryFileName(toString());
+		final String fileName = toString();
+		treeObservable.setFileName(fileName);
+		final SourceType sourceType;
+		if (fileName.matches(".*(\\.xml|\\.rels)$")) {
+			sourceType = SourceType.text_xml;
+		} else {
+			sourceType = SourceType.octet;
+		}
+		treeObservable.setSourceType(sourceType);
 		treeObservable.setStructuredSource(null);
+		treeObservable.setTreeEntryListener(this);
 		treeObservable.notifyObservers();
 	}
+
+	@Override
+	public void update(Observable o, Object arg) {
+		if (MENU_EDIT_APPLY.equals(arg)) {
+			PackagePartName pn = packagePart.getPartName();
+			packagePart.clear();
+			try (OutputStream os = packagePart.getOutputStream()) {
+				treeObservable.getBinarySource().getBinaryData().saveToStream(os);
+				// packagePart reference might have internally changed, so we need to update ours too
+				packagePart = packagePart.getPackage().getPart(pn);
+			} catch (IOException | TreeModelLoadException e) {
+				// TODO: error message
+				e.printStackTrace();
+			}
+		}
+	}
+
 	
 	private ByteArrayEditableData getData() throws IOException, TreeModelLoadException {
 		if (packagePart instanceof PackagePropertiesPart) {
