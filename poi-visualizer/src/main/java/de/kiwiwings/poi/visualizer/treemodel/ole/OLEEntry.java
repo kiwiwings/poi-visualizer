@@ -21,7 +21,6 @@ import static de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceOrigin.
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Observable;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -67,10 +66,13 @@ public class OLEEntry implements TreeModelEntry {
 		treeObservable.setBinarySource(() -> getData());
 		treeObservable.setSourceType(SourceType.octet);
 		treeObservable.setFileName(escapeString(entry.getName()));
-		treeObservable.setStructuredSource(null);
-		treeObservable.notifyObservers();
+		setProperties();
 	}
 
+	protected void setProperties() {
+		treeObservable.setProperties(null);
+	}
+	
 	@Override
 	public void update(Observable o, Object arg) {
 		if (surrugateEntry != null) {

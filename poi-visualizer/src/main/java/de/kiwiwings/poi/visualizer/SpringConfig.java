@@ -21,6 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextPane;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -69,8 +70,8 @@ public class SpringConfig {
 	}
 
 	@Bean
-	public JPanel structureArea() {
-		return new JPanel();
+	public JTextPane propertiesArea() {
+		return new JTextPane();
 	}
 
 	@Bean

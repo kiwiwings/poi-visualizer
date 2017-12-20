@@ -18,17 +18,31 @@
 package de.kiwiwings.poi.visualizer.treemodel.opc;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.util.Date;
 
+import javax.json.Json;
+import javax.json.JsonObjectBuilder;
 import javax.swing.tree.DefaultMutableTreeNode;
 
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
+import org.apache.poi.openxml4j.opc.PackageProperties;
+import org.apache.poi.openxml4j.util.Nullable;
+import org.apache.poi.util.LocaleUtil;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 @Component(value="OPCRootEntry")
 @Scope("prototype")
 public class OPCRootEntry extends OPCDirEntry {
+	private static final DateFormat DATE_FMT =
+		DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, LocaleUtil.getUserLocale());
+	
 	final OPCPackage opcPackage;
+	
+	
+	
 	OPCRootEntry(final OPCPackage opcPackage, final DefaultMutableTreeNode treeNode) {
 		super("/", treeNode);
 		this.opcPackage = opcPackage;
@@ -42,5 +56,46 @@ public class OPCRootEntry extends OPCDirEntry {
 	@Override
 	public String toString() {
 		return "opc";
+	}
+	
+	@Override
+	protected void setProperties() {
+		try {
+			final PackageProperties props = opcPackage.getPackageProperties();
+
+			final Object[][] values = {
+					{ "category", props.getCategoryProperty() },
+					{ "contentStatus", props.getContentStatusProperty() },
+					{ "contentType", props.getContentTypeProperty() },
+					{ "creator", props.getCreatorProperty() },
+					{ "description", props.getDescriptionProperty() },
+					{ "identifier", props.getIdentifierProperty() },
+					{ "keywords", props.getKeywordsProperty() },
+					{ "language", props.getLanguageProperty() },
+					{ "lastModifiedBy", props.getLastModifiedByProperty() },
+					{ "revision", props.getRevisionProperty() },
+					{ "subject", props.getSubjectProperty() },
+					{ "title", props.getTitleProperty() },
+					{ "version", props.getVersionProperty() },
+					{ "created", props.getCreatedProperty() },
+					{ "modified", props.getModifiedProperty() },
+			};
+			
+			final JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
+			for (Object[] v : values) {
+				final Nullable<?> nValue = (Nullable<?>)v[1];
+				if (nValue.hasValue()) {
+					Object val = nValue.getValue();
+					if (val instanceof Date) {
+						val = DATE_FMT.format((Date)val);
+					}
+					jsonBuilder.add((String)v[0], val.toString());
+				}
+			}
+			
+			treeObservable.setProperties(jsonBuilder.build().toString());
+		} catch (InvalidFormatException e) {
+			treeObservable.setProperties(null);
+		}
 	}
 }

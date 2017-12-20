@@ -31,7 +31,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelSource;
 
@@ -53,7 +52,7 @@ public class OLETreeModel implements TreeModelSource {
 		if (!(source instanceof File)) {
 			throw new TreeModelLoadException("source isn't a file.");
 		}
-
+		
 		POIFSFileSystem poifs = null;
 		try {
 			poifs = new POIFSFileSystem((File)source);
@@ -62,7 +61,6 @@ public class OLETreeModel implements TreeModelSource {
 			IOUtils.closeQuietly(poifs);
 			throw new TreeModelLoadException("Error in opening '"+((File)source).getPath()+"'");
 		}
-
 	}
 
 	private void traverseFileSystem(Entry poifsNode, DefaultMutableTreeNode treeNode) {

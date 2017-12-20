@@ -56,10 +56,13 @@ public class OPCDirEntry implements TreeModelEntry {
 	public void activate() {
 		treeObservable.setBinarySource(() -> new ByteArrayEditableData());
 		treeObservable.setSourceType(SourceType.empty);
-		treeObservable.setStructuredSource(null);
-		treeObservable.notifyObservers();
+		setProperties();
 	}
 
+	protected void setProperties() {
+		treeObservable.setProperties(null);
+	}
+	
 	@Override
 	public void close() throws IOException {
 	}

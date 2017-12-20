@@ -48,7 +48,7 @@ public interface TreeModelEntry extends Closeable, Observer {
 	String toString();
 	
 	/**
-	 * Entry is clicked/activate - update the observable(s)
+	 * Entry is clicked/activate - don't update the observable(s)
 	 */
 	void activate();
 }

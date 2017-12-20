@@ -17,9 +17,13 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.ole;
 
+import javax.json.Json;
+import javax.json.JsonObjectBuilder;
 import javax.swing.tree.DefaultMutableTreeNode;
 
+import org.apache.poi.hpsf.ClassID;
 import org.apache.poi.poifs.filesystem.DirectoryNode;
+import org.apache.poi.poifs.filesystem.DocumentNode;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -37,7 +41,27 @@ public class OLEDirEntry extends OLEEntry {
 	public void activate() {
 		treeObservable.setBinarySource(() -> new ByteArrayEditableData());
 		treeObservable.setSourceType(SourceType.empty);
-		treeObservable.setStructuredSource(null);
-		treeObservable.notifyObservers();
+		setProperties();
+	}
+	
+	@Override
+	protected void setProperties() {
+		final DirectoryNode dirNode = (DirectoryNode)entry;
+		treeObservable.setProperties(null);
+
+		final JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
+		ClassID storageClsid = dirNode.getStorageClsid();
+		if (storageClsid != null) {
+			jsonBuilder.add("storage_clsid", storageClsid.toString());
+		}
+		
+		dirNode.forEach(e -> {
+			if (e instanceof DocumentNode) {
+				DocumentNode dn = (DocumentNode)e;
+				jsonBuilder.add(escapeString(dn.getName()), "Size: "+dn.getSize());
+			}
+		});
+		
+		treeObservable.setProperties(jsonBuilder.build().toString());
 	}
 }

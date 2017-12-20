@@ -41,6 +41,7 @@ public class OLERootEntry extends OLEDirEntry {
 	public void activate() {
 		if (surrugateEntry != null) {
 			surrugateEntry.activate();
+			setProperties();
 		} else {
 			super.activate();
 		}

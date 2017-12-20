@@ -25,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.Observable;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -46,6 +47,7 @@ import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import de.kiwiwings.poi.visualizer.treemodel.ole.OLEDirEntry;
 import de.kiwiwings.poi.visualizer.treemodel.ole.OLETreeModel;
 
 @Component(value="OPCEntry")
@@ -74,7 +76,6 @@ public class OPCEntry implements TreeModelEntry {
 	
 	@Override
 	public void activate() {
-		treeObservable.setBinarySource(() -> getData());
 		final String fileName = toString();
 		treeObservable.setFileName(fileName);
 		final SourceType sourceType;
@@ -84,9 +85,20 @@ public class OPCEntry implements TreeModelEntry {
 			sourceType = SourceType.octet;
 		}
 		treeObservable.setSourceType(sourceType);
-		treeObservable.setStructuredSource(null);
+		treeObservable.setProperties(null);
 		treeObservable.setTreeEntryListener(this);
-		treeObservable.notifyObservers();
+
+		// need to cache data, otherwise the switch from opc to ole doesn't work
+		// furthermore the data part needs to be set last, because of a side-effect in getData() 
+		ByteArrayEditableData dataTmp;
+		try {
+			dataTmp = getData();
+		} catch (TreeModelLoadException|IOException e) {
+			dataTmp = new ByteArrayEditableData(e.getMessage().getBytes(Charset.forName("UTF-8")));
+		}
+		final ByteArrayEditableData data = dataTmp;
+		
+		treeObservable.setBinarySource(() -> data);
 	}
 
 	@Override
@@ -120,6 +132,7 @@ public class OPCEntry implements TreeModelEntry {
 					oleFile = copyToTempFile(is);
 					OLETreeModel poifsNode = appContext.getBean(OLETreeModel.class, treeNode);
 					poifsNode.load(oleFile);
+					((TreeModelEntry)treeNode.getUserObject()).activate();
 				}
 				
 				try (InputStream is2 = new FileInputStream(oleFile)) {

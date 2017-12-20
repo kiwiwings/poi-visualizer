@@ -26,7 +26,6 @@ import org.exbin.utils.binary_data.ByteArrayEditableData;
 import org.springframework.stereotype.Component;
 
 import de.kiwiwings.poi.visualizer.BinarySource;
-import de.kiwiwings.poi.visualizer.StructuredSource;
 
 @Component(value="treeObserver")
 public class TreeObservable extends Observable {
@@ -38,11 +37,10 @@ public class TreeObservable extends Observable {
 		MENU_EDIT_APPLY;
 	}
 	
-	
 	private BinarySource binarySource;
 	private ByteArrayEditableData cachedBinary;
 	private String fileName;
-	private StructuredSource structuredSource;
+	private String properties;
 	private SourceType sourceType;
 
 	public BinarySource getBinarySource() {
@@ -73,15 +71,15 @@ public class TreeObservable extends Observable {
 		setChanged();
 	}
 	
-	public StructuredSource getStructuredSource() {
-		return structuredSource;
+	public String getProperties() {
+		return properties;
 	}
 
-	public void setStructuredSource(StructuredSource structuredSource) {
-		this.structuredSource = structuredSource;
+	public void setProperties(String properties) {
+		this.properties = properties;
 		setChanged();
 	}
-	
+
 	public void setTreeEntryListener(TreeModelEntry entry) {
 		deleteObserver(new Observer() {
 			public void update(Observable o, Object arg) {}

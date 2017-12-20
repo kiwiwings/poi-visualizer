@@ -18,10 +18,19 @@
 package de.kiwiwings.poi.visualizer;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.Collections;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
+import javax.json.Json;
+import javax.json.JsonReader;
+import javax.json.JsonWriter;
+import javax.json.stream.JsonGenerator;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -57,7 +66,7 @@ public class POIMainFrame extends JFrame {
 
 	@Autowired
 	private JTabbedPane contentArea;
-	
+
 	@Autowired
 	private JTree treeDir;
 
@@ -65,49 +74,52 @@ public class POIMainFrame extends JFrame {
 	private CodeArea codeArea;
 
 	@Autowired
-	private JPanel structureArea;
+	private JTextPane propertiesArea;
 
 	@Autowired
-	private JSplitPane splitPane;	
+	private JSplitPane splitPane;
 
 	@Autowired
-	private POITopMenuBar topMenu;	
+	private POITopMenuBar topMenu;
 
 	@Autowired
-	private POIContextMenu contextMenu;	
-	
+	private POIContextMenu contextMenu;
+
 	@Autowired
 	private XMLEditor xmlEditor;
-	
+
 	private boolean isInit = false;
-	
+
 	public POIMainFrame() {
 		super("POI Visualizer");
 	}
-	
+
 
     @PostConstruct
 	public void init() {
     	if (isInit) {
     		return;
     	}
-    	
+
     	isInit = true;
-    	
+
     	topMenu.init();
 		setJMenuBar(topMenu);
-		
+
 		contextMenu.init();
 		xmlEditor.init();
-		
+
         contentArea.addTab("binary", codeArea);
         contentArea.addTab("xml", xmlEditor);
-        contentArea.addTab("structure", structureArea);
+
+        JScrollPane propScroll = new JScrollPane(propertiesArea);
+        contentArea.addTab("properties", propScroll);
 		add(splitPane);
 
 		treeDir.addTreeSelectionListener(e -> loadEntry(e));
 		treeDir.addMouseListener(MLFactory.mousePopup(e -> contextMenu.handleEntryClick(e)));
         treeObservable.addObserver((o, arg) -> updateCodeArea());
+        treeObservable.addObserver((o, arg) -> updateProperties());
         addWindowListener(WLFactory.windowClosed(e -> shutdown() ));
 
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -120,7 +132,7 @@ public class POIMainFrame extends JFrame {
     	codeArea.getCaret().setBlinkRate(0);
     	SwingUtilities.invokeLater(() -> { synchronized(this) { this.notify(); } });
     }
-    
+
 	private void updateCodeArea() {
     	try {
     		ByteArrayEditableData data = treeObservable.getBinarySource().getBinaryData();
@@ -128,6 +140,33 @@ public class POIMainFrame extends JFrame {
     	} catch (IOException|TreeModelLoadException ex) {
     		// todo
     	}
+	}
+
+	private void updateProperties() {
+		final String props = treeObservable.getProperties();
+		if (props == null || "".equals(props)) {
+			propertiesArea.setText("");
+		} else {
+			try (
+				StringWriter writer = new StringWriter();
+				JsonReader jReader = createJsonReader(new StringReader(props));
+				JsonWriter jWriter = createJsonWriter(writer)
+			) {
+				jWriter.write(jReader.readObject());
+				propertiesArea.setText(writer.toString());
+			} catch (IOException ex) {
+				propertiesArea.setText(props);
+			}
+		}
+	}
+
+	private JsonReader createJsonReader(Reader reader) {
+		return Json.createReaderFactory(null).createReader(reader);
+	}
+
+	private JsonWriter createJsonWriter(Writer writer) {
+		final Map<String,Object> props = Collections.singletonMap(JsonGenerator.PRETTY_PRINTING, true);
+		return Json.createWriterFactory(props).createWriter(writer);
 	}
 
 	private void loadEntry(final TreeSelectionEvent e) {
@@ -139,6 +178,7 @@ public class POIMainFrame extends JFrame {
 		final Object userObject = node.getUserObject();
 		if (userObject instanceof TreeModelEntry) {
 			((TreeModelEntry)userObject).activate();
+			treeObservable.notifyObservers();
 		}
 	}
 }
