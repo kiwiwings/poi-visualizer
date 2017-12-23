@@ -17,6 +17,8 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.opc;
 
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
+
 import java.io.IOException;
 
 import javax.swing.tree.DefaultMutableTreeNode;

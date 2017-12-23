@@ -17,6 +17,8 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.getNamedTreeNode;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -24,6 +26,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.apache.poi.ddf.EscherContainerRecord;
 import org.apache.poi.ddf.EscherRecord;
+import org.apache.poi.hslf.record.CurrentUserAtom;
+import org.apache.poi.hslf.record.ExOleObjStg;
 import org.apache.poi.hslf.record.PPDrawing;
 import org.apache.poi.hslf.record.Record;
 import org.apache.poi.hslf.record.RecordContainer;
@@ -58,12 +62,13 @@ public class HSLFTreeModel implements TreeModelSource {
 	public void load(Object source) throws TreeModelLoadException {
 		try {
 			ppt = new HSLFSlideShow((DirectoryNode)source);
-			final DefaultMutableTreeNode slNode = getNamedTreeNode(HSLFSlideShow.POWERPOINT_DOCUMENT);
+			final DefaultMutableTreeNode slNode = getNamedTreeNode(parent, HSLFSlideShow.POWERPOINT_DOCUMENT);
 			HSLFRootEntry rootNode = appContext.getBean(HSLFRootEntry.class, ppt, slNode);
 			slNode.setUserObject(rootNode);
 			loadRecords(slNode,ppt.getSlideShowImpl().getRecords());
-			final DefaultMutableTreeNode picNode = getNamedTreeNode("Pictures");
+			final DefaultMutableTreeNode picNode = getNamedTreeNode(parent, "Pictures");
 			loadPictures(picNode);
+			loadCurrentUser(parent);
 		} catch (IOException e) {
 			throw new TreeModelLoadException("Can't load HSLF slideshow",e);
 		}
@@ -76,6 +81,8 @@ public class HSLFTreeModel implements TreeModelSource {
 				qualifier = "HSLFDirEntry";
 			} else if (r instanceof PPDrawing) {
 				qualifier = "HSLFDrawing";
+			} else if (r instanceof ExOleObjStg) {
+				qualifier = "HSLFOleEmbed";
 			} else {
 				qualifier = "HSLFEntry";
 			}
@@ -114,16 +121,11 @@ public class HSLFTreeModel implements TreeModelSource {
 			}
 		}
 	}
-
-	private DefaultMutableTreeNode getNamedTreeNode(String name) {
-		final int cnt = parent.getChildCount();
-		for (int i=0; i<cnt; i++) {
-			final DefaultMutableTreeNode c = (DefaultMutableTreeNode)parent.getChildAt(i);
-			final TreeModelEntry poifsEntry = (TreeModelEntry)c.getUserObject();
-			if (name.equals(poifsEntry.toString())) {
-				return c;
-			}
-		}
-		return null;
+	
+	private void loadCurrentUser(final DefaultMutableTreeNode parentNode) {
+		final DefaultMutableTreeNode cuNode = getNamedTreeNode(parentNode, "Current User");
+		final CurrentUserAtom cu = ppt.getSlideShowImpl().getCurrentUserAtom();
+		final HSLFCurrentUser cuModel = appContext.getBean(HSLFCurrentUser.class, cu, cuNode);
+		cuNode.setUserObject(cuModel);
 	}
 }

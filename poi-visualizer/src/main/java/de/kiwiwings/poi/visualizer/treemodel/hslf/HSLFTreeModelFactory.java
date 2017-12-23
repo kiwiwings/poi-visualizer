@@ -15,19 +15,30 @@
    limitations under the License.
 ==================================================================== */
 
-package de.kiwiwings.poi.visualizer.treemodel;
+package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
-import java.io.Closeable;
-import java.util.Observable;
-import java.util.Observer;
+import javax.swing.tree.DefaultMutableTreeNode;
 
-public interface TreeModelEntry extends Closeable, Observer {
-	default void update(Observable o, Object arg) {}
-	
-	String toString();
-	
-	/**
-	 * Entry is clicked/activate - don't update the observable(s)
-	 */
-	void activate();
+import org.apache.poi.hslf.usermodel.HSLFSlideShow;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
+
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelSource;
+import de.kiwiwings.poi.visualizer.treemodel.ole.OLETreeModelFactory;
+
+@Component
+public class HSLFTreeModelFactory implements OLETreeModelFactory {
+
+	@Autowired
+	private ApplicationContext appContext;
+
+	@Override
+	public TreeModelSource create(final POIFSFileSystem poifs, final DefaultMutableTreeNode parent) {
+		if (poifs.getRoot().hasEntry(HSLFSlideShow.POWERPOINT_DOCUMENT)) {
+			return appContext.getBean(HSLFTreeModel.class, parent);
+		}
+		return null;
+	}
 }

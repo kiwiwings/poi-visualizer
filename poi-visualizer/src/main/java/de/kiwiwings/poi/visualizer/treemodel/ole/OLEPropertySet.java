@@ -18,7 +18,7 @@
 package de.kiwiwings.poi.visualizer.treemodel.ole;
 
 import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
-import static de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceOrigin.MENU_EDIT_APPLY;
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,6 +26,9 @@ import java.util.Observable;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
+import org.apache.poi.hpsf.NoPropertySetStreamException;
+import org.apache.poi.hpsf.PropertySet;
+import org.apache.poi.hpsf.PropertySetFactory;
 import org.apache.poi.poifs.filesystem.DirectoryNode;
 import org.apache.poi.poifs.filesystem.DocumentNode;
 import org.apache.poi.poifs.filesystem.Entry;
@@ -39,28 +42,29 @@ import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
 
-@Component(value="OLEEntry")
+@Component(value="OLEPropertySet")
 @Scope("prototype")
-public class OLEEntry implements TreeModelEntry {
+public class OLEPropertySet implements TreeModelEntry {
 	Entry entry;
+	PropertySet propertySet;
 	final DefaultMutableTreeNode treeNode;
-	final TreeModelEntry surrugateEntry;
 
 	@Autowired
 	TreeObservable treeObservable;
 
-	public OLEEntry(final Entry entry, final DefaultMutableTreeNode treeNode) {
+	public OLEPropertySet(final Entry entry, final DefaultMutableTreeNode treeNode) throws TreeModelLoadException {
 		this.entry = entry;
 		this.treeNode = treeNode;
-		Object oldUserObject = treeNode.getUserObject();
-		surrugateEntry = (oldUserObject instanceof TreeModelEntry) ? (TreeModelEntry)oldUserObject : null;
+		try {
+			this.propertySet = PropertySetFactory.create(entry.getParent(), entry.getName());
+		} catch (NoPropertySetStreamException | IOException e) {
+			throw new TreeModelLoadException("Can't load property set", e);
+		}
 	}
 
 	@Override
 	public String toString() {
-		final String name = escapeString(entry.getName());
-		return (treeNode.getParent() == null || surrugateEntry == null)
-				? name : surrugateEntry+" ("+name+")";
+		return escapeString(entry.getName());
 	}
 
 	@Override
@@ -72,26 +76,11 @@ public class OLEEntry implements TreeModelEntry {
 	}
 
 	protected void setProperties() {
-		treeObservable.setProperties(null);
+		treeObservable.setProperties(reflectProperties(propertySet));
 	}
 
 	@Override
 	public void update(Observable o, Object arg) {
-		if (surrugateEntry != null) {
-			surrugateEntry.update(o, arg);
-			return;
-		}
-
-		if (MENU_EDIT_APPLY.equals(arg)) {
-			if (entry instanceof DocumentNode) {
-				try (InputStream is = treeObservable.getBinarySource().getBinaryData().getDataInputStream()) {
-					entry = entry.getParent().createDocument(entry.getName(), is);
-				} catch (TreeModelLoadException|IOException e) {
-					// TODO: error message
-					e.printStackTrace();
-				}
-			}
-		}
 	}
 
 	private ByteArrayEditableData getData() throws IOException {

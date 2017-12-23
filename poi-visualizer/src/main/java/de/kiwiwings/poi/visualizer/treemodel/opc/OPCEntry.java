@@ -17,6 +17,7 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.opc;
 
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
 import static de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceOrigin.MENU_EDIT_APPLY;
 
 import java.io.File;
@@ -47,7 +48,6 @@ import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
-import de.kiwiwings.poi.visualizer.treemodel.ole.OLEDirEntry;
 import de.kiwiwings.poi.visualizer.treemodel.ole.OLETreeModel;
 
 @Component(value="OPCEntry")

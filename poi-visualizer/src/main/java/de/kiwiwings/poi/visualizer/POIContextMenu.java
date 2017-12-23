@@ -91,7 +91,7 @@ public class POIContextMenu extends JPopupMenu {
 		final JFileChooser fc = new JFileChooser();
 		fc.setCurrentDirectory(new File("."));
 		fc.setSelectedFile(new File(treeObservable.getFileName()));
-		final int returnVal = fc.showOpenDialog(this);
+		final int returnVal = fc.showSaveDialog(this);
 		if (returnVal != JFileChooser.APPROVE_OPTION) {
 			return;
 		}

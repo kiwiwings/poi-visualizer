@@ -17,14 +17,10 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
 
-import javax.json.Json;
-import javax.json.JsonObjectBuilder;
+import java.io.IOException;
+
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.apache.poi.hslf.usermodel.HSLFPictureData;
@@ -70,7 +66,7 @@ public class HSLFPictureEntry implements TreeModelEntry {
 		treeObservable.setBinarySource(() -> getData());
 		treeObservable.setSourceType(SourceType.octet);
 		treeObservable.setFileName(toString());
-		treeObservable.setProperties(HSLFProperties.reflectProperties(picture));
+		treeObservable.setProperties(reflectProperties(picture));
 	}
 
 	private ByteArrayEditableData getData() throws IOException {

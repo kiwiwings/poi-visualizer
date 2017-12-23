@@ -17,20 +17,15 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
+
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import javax.json.Json;
-import javax.json.JsonObjectBuilder;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.apache.poi.hslf.record.PPDrawing;
-import org.apache.poi.hslf.record.Record;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -73,7 +68,7 @@ public class HSLFDrawing implements TreeModelEntry {
 		treeObservable.setBinarySource(() -> getData());
 		treeObservable.setSourceType(SourceType.octet);
 		treeObservable.setFileName(toString()+".rec");
-		treeObservable.setProperties(HSLFProperties.reflectProperties(drawing));
+		treeObservable.setProperties(reflectProperties(drawing));
 	}
 
 	private ByteArrayEditableData getData() throws IOException {

@@ -20,10 +20,11 @@ package de.kiwiwings.poi.visualizer.treemodel.hslf;
 import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
-import org.apache.poi.ddf.EscherRecord;
+import org.apache.poi.hslf.record.CurrentUserAtom;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -33,11 +34,11 @@ import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
 
-@Component(value="HSLFEscherRecord")
+@Component(value="HSLFCurrentUser")
 @Scope("prototype")
-public class HSLFEscherRecord implements TreeModelEntry {
+public class HSLFCurrentUser implements TreeModelEntry {
 
-	private final EscherRecord escher;
+	private final CurrentUserAtom currentUser;
 	@SuppressWarnings("unused")
 	private final DefaultMutableTreeNode treeNode;
 
@@ -45,15 +46,15 @@ public class HSLFEscherRecord implements TreeModelEntry {
 	TreeObservable treeObservable;
 
 	
-	public HSLFEscherRecord(final EscherRecord escher, final DefaultMutableTreeNode treeNode) {
-		this.escher = escher;
+	public HSLFCurrentUser(final CurrentUserAtom currentUser, final DefaultMutableTreeNode treeNode) {
+		this.currentUser = currentUser;
 		this.treeNode = treeNode;
 	}
 
 
 	@Override
 	public String toString() {
-		return escher.getClass().getSimpleName();
+		return "Current User";
 	}
 
 	
@@ -65,12 +66,15 @@ public class HSLFEscherRecord implements TreeModelEntry {
 	public void activate() {
 		treeObservable.setBinarySource(() -> getData());
 		treeObservable.setSourceType(SourceType.octet);
-		treeObservable.setFileName(toString());
-		treeObservable.setProperties(reflectProperties(escher));
+		treeObservable.setFileName("current_user.rec");
+		treeObservable.setProperties(reflectProperties(currentUser));
 	}
 
 	private ByteArrayEditableData getData() throws IOException {
-		return new ByteArrayEditableData(escher.serialize());
+		final ByteArrayEditableData data = new ByteArrayEditableData();
+		try (final OutputStream os = data.getDataOutputStream()) {
+			currentUser.writeOut(os);
+		}
+		return data;
 	}
-
 }

@@ -19,15 +19,14 @@ package de.kiwiwings.poi.visualizer.treemodel.ole;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Set;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
-import org.apache.poi.hslf.usermodel.HSLFSlideShow;
 import org.apache.poi.poifs.filesystem.DirectoryNode;
 import org.apache.poi.poifs.filesystem.Entry;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
-import org.apache.poi.util.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
@@ -35,7 +34,6 @@ import org.springframework.stereotype.Component;
 
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelSource;
-import de.kiwiwings.poi.visualizer.treemodel.hslf.HSLFTreeModel;
 
 @Component
 @Scope("prototype")
@@ -46,22 +44,22 @@ public class OLETreeModel implements TreeModelSource {
 	@Autowired
 	private ApplicationContext appContext;
 	
+	private POIFSFileSystem poifs;
+
 	public OLETreeModel(final DefaultMutableTreeNode parent) {
 		this.parent = parent;
 	}
 
-	@SuppressWarnings("resource")
 	public void load(Object source) throws TreeModelLoadException {
 		if (!(source instanceof File)) {
 			throw new TreeModelLoadException("source isn't a file.");
 		}
-		
-		POIFSFileSystem poifs = null;
+
 		try {
 			poifs = new POIFSFileSystem((File)source);
 			traverseFileSystem(poifs.getRoot(), parent);
+			handleInnerModel(poifs, parent);
 		} catch (IOException ex) {
-			IOUtils.closeQuietly(poifs);
 			throw new TreeModelLoadException("Error in opening '"+((File)source).getPath()+"'");
 		}
 	}
@@ -84,22 +82,18 @@ public class OLETreeModel implements TreeModelSource {
 				traverseFileSystem(poifsChild, treeChild);
 			}
 		}
+	}
 
-		if (poifsNode.getParent() != null) {
-			return;
+	private void handleInnerModel(final POIFSFileSystem poifs, DefaultMutableTreeNode treeNode) throws TreeModelLoadException {
+		final List<TreeModelSource> factories =
+			appContext.getBeansOfType(OLETreeModelFactory.class)
+			.values().stream()
+			.map(f -> f.create(poifs, parent))
+			.filter(f -> f != null)
+			.collect(Collectors.toList());
+		for (TreeModelSource tms : factories) {
+			tms.load(poifs.getRoot());
 		}
-
-		
-		Set<String> entryNames = ((DirectoryNode)poifsNode).getEntryNames();
-		final Class<? extends TreeModelSource> innerModelCls;
-		if (entryNames.contains(HSLFSlideShow.POWERPOINT_DOCUMENT)) {
-			innerModelCls = HSLFTreeModel.class;
-		} else {
-			return;
-		}
-		
-		TreeModelSource innerModel = appContext.getBean(innerModelCls, treeNode);
-		innerModel.load(poifsNode);
 	}
 }
 

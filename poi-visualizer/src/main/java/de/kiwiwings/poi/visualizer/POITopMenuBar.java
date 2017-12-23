@@ -22,7 +22,6 @@ import static de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceOrigin.
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 

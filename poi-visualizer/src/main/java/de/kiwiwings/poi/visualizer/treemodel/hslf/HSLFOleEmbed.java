@@ -17,45 +17,59 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
 import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStream;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
-import org.apache.poi.hslf.record.Record;
+import org.apache.poi.hslf.record.ExOleObjStg;
+import org.apache.poi.poifs.filesystem.FileMagic;
+import org.apache.poi.util.IOUtils;
+import org.apache.poi.util.TempFile;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import de.kiwiwings.poi.visualizer.treemodel.ole.OLETreeModel;
 
-@Component(value="HSLFEntry")
+@Component(value="HSLFOleEmbed")
 @Scope("prototype")
-public class HSLFEntry implements TreeModelEntry {
+public class HSLFOleEmbed implements TreeModelEntry {
 
-	private final Record record;
+	private final ExOleObjStg embed;
 	@SuppressWarnings("unused")
 	private final DefaultMutableTreeNode treeNode;
 
 	@Autowired
 	TreeObservable treeObservable;
 
+	@Autowired
+	private ApplicationContext appContext;
+
+	File oleFile;
+
 	
-	public HSLFEntry(final Record record, final DefaultMutableTreeNode treeNode) {
-		this.record = record;
+	public HSLFOleEmbed(final ExOleObjStg embed, final DefaultMutableTreeNode treeNode) {
+		this.embed = embed;
 		this.treeNode = treeNode;
 	}
 
+	
 
 	@Override
 	public String toString() {
-		return escapeString(record.getClass().getSimpleName());
+		return embed.getClass().getSimpleName() + " (embed-"+embed.getPersistId()+")";
 	}
 
 	
@@ -68,14 +82,43 @@ public class HSLFEntry implements TreeModelEntry {
 		treeObservable.setBinarySource(() -> getData());
 		treeObservable.setSourceType(SourceType.octet);
 		treeObservable.setFileName(toString()+".rec");
-		treeObservable.setProperties(reflectProperties(record));
+		treeObservable.setProperties(reflectProperties(embed));
 	}
 
-	private ByteArrayEditableData getData() throws IOException {
-		final ByteArrayEditableData data = new ByteArrayEditableData();
-		try (final OutputStream os = data.getDataOutputStream()) {
-			record.writeOut(os);
+	private ByteArrayEditableData getData() throws IOException, TreeModelLoadException {
+		FileMagic fm;
+		try (InputStream is = FileMagic.prepareToCheckMagic(embed.getData())) {
+			final ByteArrayEditableData data = new ByteArrayEditableData();
+			fm = FileMagic.valueOf(is);
+			if (fm == FileMagic.OLE2) {
+				if (oleFile == null) {
+					oleFile = copyToTempFile(is);
+					OLETreeModel poifsNode = appContext.getBean(OLETreeModel.class, treeNode);
+					poifsNode.load(oleFile);
+					((TreeModelEntry)treeNode.getUserObject()).activate();
+				}
+				
+				try (InputStream is2 = new FileInputStream(oleFile)) {
+					data.loadFromStream(is2);
+				}
+			} else {
+				data.loadFromStream(is);
+			}
+			return data;
 		}
-		return data;
 	}
+
+	private File copyToTempFile(InputStream is) throws IOException {
+		final String prefix = "embed-"+embed.getPersistId()+"-";
+		final String suffix = ".dat";
+
+		final File of = TempFile.createTempFile(prefix, suffix);
+		try (FileOutputStream fos = new FileOutputStream(of)) {
+			IOUtils.copy(is, fos);
+		}
+		of.deleteOnExit();
+		return of;
+	}
+
+	
 }

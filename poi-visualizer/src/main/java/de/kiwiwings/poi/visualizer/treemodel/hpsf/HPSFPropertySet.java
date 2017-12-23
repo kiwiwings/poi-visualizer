@@ -15,15 +15,17 @@
    limitations under the License.
 ==================================================================== */
 
-package de.kiwiwings.poi.visualizer.treemodel.hslf;
+package de.kiwiwings.poi.visualizer.treemodel.hpsf;
 
 import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
-import org.apache.poi.ddf.EscherRecord;
+import org.apache.poi.hpsf.PropertySet;
+import org.apache.poi.hpsf.WritingNotSupportedException;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -33,27 +35,30 @@ import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
 
-@Component(value="HSLFEscherRecord")
+@Component(value="HPSFPropertySet")
 @Scope("prototype")
-public class HSLFEscherRecord implements TreeModelEntry {
+public class HPSFPropertySet implements TreeModelEntry {
 
-	private final EscherRecord escher;
+	private final PropertySet propertySet;
 	@SuppressWarnings("unused")
 	private final DefaultMutableTreeNode treeNode;
+	final TreeModelEntry surrugateEntry;
 
 	@Autowired
 	TreeObservable treeObservable;
 
 	
-	public HSLFEscherRecord(final EscherRecord escher, final DefaultMutableTreeNode treeNode) {
-		this.escher = escher;
+	public HPSFPropertySet(final PropertySet propertySet, final DefaultMutableTreeNode treeNode) {
+		this.propertySet = propertySet;
 		this.treeNode = treeNode;
+		Object oldUserObject = treeNode.getUserObject();
+		surrugateEntry = (oldUserObject instanceof TreeModelEntry) ? (TreeModelEntry)oldUserObject : null;
 	}
 
 
 	@Override
 	public String toString() {
-		return escher.getClass().getSimpleName();
+		return surrugateEntry.toString();
 	}
 
 	
@@ -65,12 +70,17 @@ public class HSLFEscherRecord implements TreeModelEntry {
 	public void activate() {
 		treeObservable.setBinarySource(() -> getData());
 		treeObservable.setSourceType(SourceType.octet);
-		treeObservable.setFileName(toString());
-		treeObservable.setProperties(reflectProperties(escher));
+		treeObservable.setFileName(toString()+".rec");
+		treeObservable.setProperties(reflectProperties(propertySet));
 	}
 
 	private ByteArrayEditableData getData() throws IOException {
-		return new ByteArrayEditableData(escher.serialize());
+		final ByteArrayEditableData data = new ByteArrayEditableData();
+		try (final OutputStream os = data.getDataOutputStream()) {
+			propertySet.write(os);
+		} catch (WritingNotSupportedException e) {
+			throw new IOException(e);
+		}
+		return data;
 	}
-
 }

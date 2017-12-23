@@ -15,11 +15,10 @@
    limitations under the License.
 ==================================================================== */
 
-package de.kiwiwings.poi.visualizer.treemodel.hslf;
+package de.kiwiwings.poi.visualizer.treemodel;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -29,10 +28,42 @@ import java.util.regex.Pattern;
 
 import javax.json.Json;
 import javax.json.JsonObjectBuilder;
+import javax.swing.tree.DefaultMutableTreeNode;
 
-public class HSLFProperties {
+public class TreeModelUtils {
+	// replace control characters
+	private static final Pattern CTRL_CHR = Pattern.compile("\\p{Cc}"); 
 	private static final Pattern getter = Pattern.compile("(?:is|get)(.*)");
 
+	public static DefaultMutableTreeNode getNamedTreeNode(final DefaultMutableTreeNode parent, final String name) {
+		final String escName = escapeString(name);
+		final int cnt = parent.getChildCount();
+		for (int i=0; i<cnt; i++) {
+			final DefaultMutableTreeNode c = (DefaultMutableTreeNode)parent.getChildAt(i);
+			final TreeModelEntry poifsEntry = (TreeModelEntry)c.getUserObject();
+			if (escName.equals(poifsEntry.toString())) {
+				return c;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Escape string suitable for display in a tree
+	 * @param string the raw string
+	 * @return the escaped string
+	 */
+	public static String escapeString(final String string) {
+		final Matcher match = CTRL_CHR.matcher(string);
+		final StringBuffer sb = new StringBuffer();
+		while (match.find()) {
+			int cp = match.group().codePointAt(0);
+			match.appendReplacement(sb, String.format("\\\\%02X", cp));
+		}
+		match.appendTail(sb);
+		return sb.toString();
+	}
+	
 	public static String reflectProperties(Object obj) {
 		final JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
 
@@ -49,7 +80,11 @@ public class HSLFProperties {
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 					propVal = e.getMessage();
 				}
-				jsonBuilder.add(propName, propVal);
+				if (propVal == null) {
+					jsonBuilder.addNull(propName);
+				} else {
+					jsonBuilder.add(propName, propVal);
+				}
 			}
 		}
 		return jsonBuilder.build().toString();
@@ -61,6 +96,9 @@ public class HSLFProperties {
 			retType.isArray() ||
 			Iterator.class.isAssignableFrom(retType) ||
 			(Collection.class.isAssignableFrom(retType) && !m.getName().contains("getEscherProperties"))
+		) && (
+			retType.getPackage() == null ||
+			retType.getName().contains("java.lang")
 		);
 	}
 

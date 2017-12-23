@@ -17,6 +17,8 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.ole;
 
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
+
 import javax.json.Json;
 import javax.json.JsonObjectBuilder;
 import javax.swing.tree.DefaultMutableTreeNode;
