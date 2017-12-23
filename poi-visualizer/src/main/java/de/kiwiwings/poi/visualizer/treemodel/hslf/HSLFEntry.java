@@ -43,6 +43,7 @@ import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
 public class HSLFEntry implements TreeModelEntry {
 
 	private final Record record;
+	@SuppressWarnings("unused")
 	private final DefaultMutableTreeNode treeNode;
 
 	@Autowired
@@ -70,7 +71,7 @@ public class HSLFEntry implements TreeModelEntry {
 		treeObservable.setBinarySource(() -> getData());
 		treeObservable.setSourceType(SourceType.octet);
 		treeObservable.setFileName(toString()+".rec");
-		treeObservable.setProperties(reflectProperties());
+		treeObservable.setProperties(HSLFProperties.reflectProperties(record));
 	}
 
 	private ByteArrayEditableData getData() throws IOException {
@@ -79,27 +80,5 @@ public class HSLFEntry implements TreeModelEntry {
 			record.writeOut(os);
 		}
 		return data;
-	}
-
-	private String reflectProperties() {
-		final Pattern getter = Pattern.compile("(?:is|get)(.*)"); 
-		final JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
-
-		for (Method m : record.getClass().getDeclaredMethods()) {
-			final Matcher match = getter.matcher(m.getName());
-			if (match.matches() && m.getParameterCount() == 0) {
-				final String propName = match.group(1);
-				String propVal;
-				try {
-					m.setAccessible(true);
-					Object obj = m.invoke(record);
-					propVal = (obj == null) ? "" : obj.toString();
-				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-					propVal = e.getMessage();
-				}
-				jsonBuilder.add(propName, propVal);
-			}
-		}
-		return jsonBuilder.build().toString();
 	}
 }

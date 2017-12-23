@@ -87,7 +87,7 @@ public class SpringConfig {
 		final JSplitPane splitPane = new JSplitPane();
 		splitPane.setLeftComponent(treeScroll);
 		splitPane.setRightComponent(contentArea);
-		splitPane.setDividerLocation(150);
+		splitPane.setDividerLocation(300);
 		splitPane.setOneTouchExpandable(true);
 		splitPane.setContinuousLayout(true);
 		return splitPane;

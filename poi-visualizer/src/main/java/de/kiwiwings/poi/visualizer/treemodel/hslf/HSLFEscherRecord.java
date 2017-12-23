@@ -27,6 +27,7 @@ import javax.json.Json;
 import javax.json.JsonObjectBuilder;
 import javax.swing.tree.DefaultMutableTreeNode;
 
+import org.apache.poi.ddf.EscherRecord;
 import org.apache.poi.hslf.usermodel.HSLFPictureData;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,11 +38,11 @@ import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
 
-@Component(value="HSLFPictureEntry")
+@Component(value="HSLFEscherRecord")
 @Scope("prototype")
-public class HSLFPictureEntry implements TreeModelEntry {
+public class HSLFEscherRecord implements TreeModelEntry {
 
-	private final HSLFPictureData picture;
+	private final EscherRecord escher;
 	@SuppressWarnings("unused")
 	private final DefaultMutableTreeNode treeNode;
 
@@ -49,15 +50,15 @@ public class HSLFPictureEntry implements TreeModelEntry {
 	TreeObservable treeObservable;
 
 	
-	public HSLFPictureEntry(final HSLFPictureData picture, final DefaultMutableTreeNode treeNode) {
-		this.picture = picture;
+	public HSLFEscherRecord(final EscherRecord escher, final DefaultMutableTreeNode treeNode) {
+		this.escher = escher;
 		this.treeNode = treeNode;
 	}
 
 
 	@Override
 	public String toString() {
-		return "picture_"+picture.getIndex()+"."+picture.getType().extension;
+		return escher.getClass().getSimpleName();
 	}
 
 	
@@ -70,10 +71,11 @@ public class HSLFPictureEntry implements TreeModelEntry {
 		treeObservable.setBinarySource(() -> getData());
 		treeObservable.setSourceType(SourceType.octet);
 		treeObservable.setFileName(toString());
-		treeObservable.setProperties(HSLFProperties.reflectProperties(picture));
+		treeObservable.setProperties(HSLFProperties.reflectProperties(escher));
 	}
 
 	private ByteArrayEditableData getData() throws IOException {
-		return new ByteArrayEditableData(picture.getData());
+		return new ByteArrayEditableData(escher.serialize());
 	}
+
 }

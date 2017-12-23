@@ -18,8 +18,10 @@
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,7 +29,8 @@ import javax.json.Json;
 import javax.json.JsonObjectBuilder;
 import javax.swing.tree.DefaultMutableTreeNode;
 
-import org.apache.poi.hslf.usermodel.HSLFPictureData;
+import org.apache.poi.hslf.record.PPDrawing;
+import org.apache.poi.hslf.record.Record;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -37,11 +40,11 @@ import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
 
-@Component(value="HSLFPictureEntry")
+@Component(value="HSLFDrawing")
 @Scope("prototype")
-public class HSLFPictureEntry implements TreeModelEntry {
+public class HSLFDrawing implements TreeModelEntry {
 
-	private final HSLFPictureData picture;
+	private final PPDrawing drawing;
 	@SuppressWarnings("unused")
 	private final DefaultMutableTreeNode treeNode;
 
@@ -49,15 +52,15 @@ public class HSLFPictureEntry implements TreeModelEntry {
 	TreeObservable treeObservable;
 
 	
-	public HSLFPictureEntry(final HSLFPictureData picture, final DefaultMutableTreeNode treeNode) {
-		this.picture = picture;
+	public HSLFDrawing(final PPDrawing drawing, final DefaultMutableTreeNode treeNode) {
+		this.drawing = drawing;
 		this.treeNode = treeNode;
 	}
 
 
 	@Override
 	public String toString() {
-		return "picture_"+picture.getIndex()+"."+picture.getType().extension;
+		return escapeString(drawing.getClass().getSimpleName());
 	}
 
 	
@@ -69,11 +72,15 @@ public class HSLFPictureEntry implements TreeModelEntry {
 	public void activate() {
 		treeObservable.setBinarySource(() -> getData());
 		treeObservable.setSourceType(SourceType.octet);
-		treeObservable.setFileName(toString());
-		treeObservable.setProperties(HSLFProperties.reflectProperties(picture));
+		treeObservable.setFileName(toString()+".rec");
+		treeObservable.setProperties(HSLFProperties.reflectProperties(drawing));
 	}
 
 	private ByteArrayEditableData getData() throws IOException {
-		return new ByteArrayEditableData(picture.getData());
+		final ByteArrayEditableData data = new ByteArrayEditableData();
+		try (final OutputStream os = data.getDataOutputStream()) {
+			drawing.writeOut(os);
+		}
+		return data;
 	}
 }
