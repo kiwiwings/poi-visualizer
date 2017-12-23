@@ -146,6 +146,8 @@ public class POIMainFrame extends JFrame {
 		final String props = treeObservable.getProperties();
 		if (props == null || "".equals(props)) {
 			propertiesArea.setText("");
+		} else if (!props.startsWith("{")) {
+			propertiesArea.setText(props);
 		} else {
 			try (
 				StringWriter writer = new StringWriter();

@@ -47,13 +47,14 @@ public class OLEEntry implements TreeModelEntry {
 
 	@Autowired
 	TreeObservable treeObservable;
-	
+
 	public OLEEntry(final Entry entry, final DefaultMutableTreeNode treeNode) {
 		this.entry = entry;
 		this.treeNode = treeNode;
 		Object oldUserObject = treeNode.getUserObject();
 		surrugateEntry = (oldUserObject instanceof TreeModelEntry) ? (TreeModelEntry)oldUserObject : null;
 	}
+
 	@Override
 	public String toString() {
 		final String name = escapeString(entry.getName());
@@ -72,14 +73,14 @@ public class OLEEntry implements TreeModelEntry {
 	protected void setProperties() {
 		treeObservable.setProperties(null);
 	}
-	
+
 	@Override
 	public void update(Observable o, Object arg) {
 		if (surrugateEntry != null) {
 			surrugateEntry.update(o, arg);
 			return;
 		}
-		
+
 		if (MENU_EDIT_APPLY.equals(arg)) {
 			if (entry instanceof DocumentNode) {
 				try (InputStream is = treeObservable.getBinarySource().getBinaryData().getDataInputStream()) {
@@ -95,6 +96,7 @@ public class OLEEntry implements TreeModelEntry {
 	private ByteArrayEditableData getData() throws IOException {
 		final DocumentNode dn = (DocumentNode)entry;
 		final DirectoryNode parent = (DirectoryNode)dn.getParent();
+
 		final ByteArrayEditableData data;
 		try (final InputStream is = parent.createDocumentInputStream(dn)) {
 			data = new ByteArrayEditableData();

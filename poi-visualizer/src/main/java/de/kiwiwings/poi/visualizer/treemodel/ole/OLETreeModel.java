@@ -19,9 +19,11 @@ package de.kiwiwings.poi.visualizer.treemodel.ole;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
+import org.apache.poi.hslf.usermodel.HSLFSlideShow;
 import org.apache.poi.poifs.filesystem.DirectoryNode;
 import org.apache.poi.poifs.filesystem.Entry;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
@@ -33,6 +35,7 @@ import org.springframework.stereotype.Component;
 
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelSource;
+import de.kiwiwings.poi.visualizer.treemodel.hslf.HSLFTreeModel;
 
 @Component
 @Scope("prototype")
@@ -63,7 +66,7 @@ public class OLETreeModel implements TreeModelSource {
 		}
 	}
 
-	private void traverseFileSystem(Entry poifsNode, DefaultMutableTreeNode treeNode) {
+	private void traverseFileSystem(Entry poifsNode, DefaultMutableTreeNode treeNode) throws TreeModelLoadException {
 		final String qualifier;
 		if (poifsNode.getParent() == null) {
 			qualifier = "OLERootEntry";
@@ -74,7 +77,6 @@ public class OLETreeModel implements TreeModelSource {
 		}
 
 		treeNode.setUserObject(appContext.getBean(qualifier, poifsNode, treeNode));
-
 		if (poifsNode instanceof DirectoryNode) {
 			for (Entry poifsChild : ((DirectoryNode)poifsNode)) {
 				DefaultMutableTreeNode treeChild = new DefaultMutableTreeNode();
@@ -82,6 +84,22 @@ public class OLETreeModel implements TreeModelSource {
 				traverseFileSystem(poifsChild, treeChild);
 			}
 		}
+
+		if (poifsNode.getParent() != null) {
+			return;
+		}
+
+		
+		Set<String> entryNames = ((DirectoryNode)poifsNode).getEntryNames();
+		final Class<? extends TreeModelSource> innerModelCls;
+		if (entryNames.contains(HSLFSlideShow.POWERPOINT_DOCUMENT)) {
+			innerModelCls = HSLFTreeModel.class;
+		} else {
+			return;
+		}
+		
+		TreeModelSource innerModel = appContext.getBean(innerModelCls, treeNode);
+		innerModel.load(poifsNode);
 	}
 }
 
