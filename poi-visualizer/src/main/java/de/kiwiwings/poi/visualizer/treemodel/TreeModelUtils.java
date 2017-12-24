@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.json.Json;
+import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -74,18 +75,28 @@ public class TreeModelUtils {
 				Matcher match = getter.matcher(m.getName());
 				match.matches();
 				final String propName = match.group(1);
-				String propVal;
+				Object retVal;
 				try {
 					m.setAccessible(true);
-					Object retVal = m.invoke(obj);
-					propVal = (retVal == null) ? "" : retVal.toString();
+					retVal = m.invoke(obj);
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-					propVal = e.getMessage();
+					retVal = e.getMessage();
 				}
-				if (propVal == null) {
+				
+				if (retVal == null) {
 					jsonBuilder.addNull(propName);
+				} else if (retVal instanceof Collection<?>) {
+					final JsonArrayBuilder arrBuilder = Json.createArrayBuilder();
+					for (Object o : ((Collection<?>)retVal)) {
+						if (o == null) {
+							arrBuilder.addNull();
+						} else {
+							arrBuilder.add(o.toString());
+						}
+					}
+					jsonBuilder.add(propName, arrBuilder.build());
 				} else {
-					jsonBuilder.add(propName, propVal);
+					jsonBuilder.add(propName, retVal.toString());
 				}
 			}
 		}
@@ -94,14 +105,15 @@ public class TreeModelUtils {
 
 	private static boolean useReturnType(Method m) {
 		final Class<?> retType = m.getReturnType();
-		return !(
+		return m.getName().equals("getEscherProperties") ||
+		(!(
 			retType.isArray() ||
 			Iterator.class.isAssignableFrom(retType) ||
-			(Collection.class.isAssignableFrom(retType) && !m.getName().contains("getEscherProperties"))
+			(Collection.class.isAssignableFrom(retType))
 		) && (
 			retType.getPackage() == null ||
 			retType.getName().contains("java.lang")
-		);
+		));
 	}
 
 	private static List<Method> getGetter(List<Method> list, Class<?> clazz) {

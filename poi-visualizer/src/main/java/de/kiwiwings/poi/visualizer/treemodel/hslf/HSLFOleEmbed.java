@@ -69,7 +69,7 @@ public class HSLFOleEmbed implements TreeModelEntry {
 
 	@Override
 	public String toString() {
-		return embed.getClass().getSimpleName() + " (embed-"+embed.getPersistId()+")";
+		return "data";
 	}
 
 	
@@ -82,7 +82,7 @@ public class HSLFOleEmbed implements TreeModelEntry {
 		treeObservable.setBinarySource(() -> getData());
 		treeObservable.setSourceType(SourceType.octet);
 		treeObservable.setFileName(toString()+".rec");
-		treeObservable.setProperties(reflectProperties(embed));
+		treeObservable.setProperties(null);
 	}
 
 	private ByteArrayEditableData getData() throws IOException, TreeModelLoadException {
