@@ -47,6 +47,7 @@ public class TreeModelFileSource implements TreeModelSource {
 		this.parent = parent;
 	}
 	
+	@Override
 	public void load(final Object source) throws TreeModelLoadException {
 		if (!(source instanceof File)) {
 			throw new TreeModelLoadException("source isn't a file.");

@@ -107,7 +107,7 @@ public class HSLFTreeModel implements TreeModelSource {
 	
 	private void loadOleEmbed(final DefaultMutableTreeNode parentNode, ExOleObjStg record) {
 		final DefaultMutableTreeNode childNode = new DefaultMutableTreeNode();
-		final TreeModelEntry oleEntry = (TreeModelEntry)appContext.getBean(HSLFOleEmbed.class, record, childNode);
+		final TreeModelEntry oleEntry = appContext.getBean(HSLFOleEmbed.class, record, childNode);
 		childNode.setUserObject(oleEntry);
 		parentNode.add(childNode);
 	}

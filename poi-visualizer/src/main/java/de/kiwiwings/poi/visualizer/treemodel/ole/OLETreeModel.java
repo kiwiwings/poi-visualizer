@@ -50,6 +50,7 @@ public class OLETreeModel implements TreeModelSource {
 		this.parent = parent;
 	}
 
+	@Override
 	public void load(Object source) throws TreeModelLoadException {
 		if (!(source instanceof File)) {
 			throw new TreeModelLoadException("source isn't a file.");

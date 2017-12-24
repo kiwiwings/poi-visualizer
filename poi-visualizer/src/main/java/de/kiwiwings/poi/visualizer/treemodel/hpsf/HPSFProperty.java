@@ -78,7 +78,7 @@ public class HPSFProperty implements TreeModelEntry {
 
 	@Override
 	public void activate() {
-		if (property.getType() == VariantSupport.VT_CF) {
+		if (property.getType() == Variant.VT_CF) {
 			final Thumbnail thumb = new Thumbnail((byte[])property.getValue());
 			long cfTag;
 			try {
@@ -117,7 +117,7 @@ public class HPSFProperty implements TreeModelEntry {
 
 	private ByteArrayEditableData getData() throws IOException {
 		final ByteArrayEditableData data = new ByteArrayEditableData();
-		if (property.getType() == VariantSupport.VT_CF) {
+		if (property.getType() == Variant.VT_CF) {
 			try (final OutputStream os = data.getDataOutputStream()) {
 				Thumbnail thumb = new Thumbnail((byte[])property.getValue());
 				os.write(

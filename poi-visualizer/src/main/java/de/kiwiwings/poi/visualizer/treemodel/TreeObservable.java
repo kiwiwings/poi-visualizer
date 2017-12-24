@@ -82,7 +82,9 @@ public class TreeObservable extends Observable {
 
 	public void setTreeEntryListener(TreeModelEntry entry) {
 		deleteObserver(new Observer() {
+			@Override
 			public void update(Observable o, Object arg) {}
+			@Override
 			public boolean equals(Object o) {
 				return o instanceof TreeModelEntry;
 			}

@@ -37,6 +37,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextPane;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -122,7 +123,7 @@ public class POIMainFrame extends JFrame {
         treeObservable.addObserver((o, arg) -> updateProperties());
         addWindowListener(WLFactory.windowClosed(e -> shutdown() ));
 
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		setLocationByPlatform(true);
 		setSize(1000,600);
     }

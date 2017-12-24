@@ -55,6 +55,7 @@ public class XmlTextPane extends JTextPane {
 		private boolean enterFlag;
 		private final Character NEW_LINE = '\n';
 
+		@Override
 		public void keyPressed(KeyEvent event) {
 			enterFlag = false;
 			if ((event.getKeyCode() == KeyEvent.VK_ENTER)
@@ -66,6 +67,7 @@ public class XmlTextPane extends JTextPane {
 			}
 		}
 
+		@Override
 		public void keyReleased(KeyEvent event) {
 			if ((event.getKeyCode() == KeyEvent.VK_ENTER) && (event.getModifiers() == 0)) {
 				if (enterFlag) {
@@ -112,6 +114,7 @@ public class XmlTextPane extends JTextPane {
 			}
 		}
 
+		@Override
 		public void keyTyped(KeyEvent e) {
 		}
 	}

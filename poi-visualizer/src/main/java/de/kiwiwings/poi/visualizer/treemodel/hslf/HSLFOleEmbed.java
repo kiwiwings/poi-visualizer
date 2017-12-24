@@ -17,8 +17,6 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
