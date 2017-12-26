@@ -16,6 +16,7 @@
 
 package de.kiwiwings.poi.visualizer;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -59,9 +60,6 @@ public class POIMainFrame extends JFrame {
 	private static final long serialVersionUID = 4777146707371974468L;
 
 	@Autowired
-	private ApplicationContext appContext;
-
-	@Autowired
 	private TreeObservable treeObservable;
 
 	@Autowired
@@ -94,6 +92,10 @@ public class POIMainFrame extends JFrame {
 		super("POI Visualizer");
 	}
 
+	public void setFileTitle(File newFile) {
+		setTitle("POI Visualizer - "+newFile.getName());
+	}
+	
 
     @PostConstruct
 	public void init() {

@@ -166,6 +166,8 @@ public class POITopMenuBar extends JMenuBar {
 			clearCurrentFile();
 			appContext.getBean(TreeModelFileSource.class, treeRoot).load(file);
 			treeModel.reload(treeRoot);
+			POIMainFrame mainFrame = appContext.getBean(POIMainFrame.class);
+			mainFrame.setFileTitle(file);
 		} catch (TreeModelLoadException ex) {
 			JOptionPane.showMessageDialog(this, ex.getMessage());
 			clearCurrentFile();
