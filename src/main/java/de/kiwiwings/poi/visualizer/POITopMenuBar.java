@@ -84,6 +84,8 @@ public class POITopMenuBar extends JMenuBar {
 	private JMenuItem menuEditIndent;
 	private JMenuItem menuEditApply;
 	
+	private File workingDir;
+	
 	@PostConstruct
 	public void init() {
     	if (isInit) {
@@ -118,6 +120,8 @@ public class POITopMenuBar extends JMenuBar {
 		add(menuEdit);
 
 		treeObservable.addObserver((o,arg) -> SwingUtilities.invokeLater(() -> contentChanged()));
+		
+		workingDir = new File(".");
 	}
 
 	private void contentChanged() {
@@ -156,12 +160,13 @@ public class POITopMenuBar extends JMenuBar {
 
 	private void loadNewFile() {
 		final JFileChooser fc = new JFileChooser();
-		fc.setCurrentDirectory(new File("."));
+		fc.setCurrentDirectory(workingDir);
 		final int returnVal = fc.showOpenDialog(this);
 		if (returnVal != JFileChooser.APPROVE_OPTION) {
 			return;
 		}
 		final File file = fc.getSelectedFile();
+		workingDir = file.getParentFile();
 		try {
 			clearCurrentFile();
 			appContext.getBean(TreeModelFileSource.class, treeRoot).load(file);
