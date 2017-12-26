@@ -37,8 +37,8 @@ import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
 @Scope("prototype")
 public class OPCDirEntry implements TreeModelEntry {
 	final String path;
-	@SuppressWarnings("unused")
 	final DefaultMutableTreeNode treeNode;
+	final TreeModelEntry surrugateEntry;
 
 	@Autowired
 	TreeObservable treeObservable;
@@ -46,11 +46,15 @@ public class OPCDirEntry implements TreeModelEntry {
 	public OPCDirEntry(final String path, final DefaultMutableTreeNode treeNode) {
 		this.path = path;
 		this.treeNode = treeNode;
+		Object oldUserObject = treeNode.getUserObject();
+		surrugateEntry = (oldUserObject instanceof TreeModelEntry) ? (TreeModelEntry)oldUserObject : null;
 	}
 
 	@Override
 	public String toString() {
-		return escapeString(path.substring(path.lastIndexOf('/')+1));
+		final String name = escapeString(path.substring(path.lastIndexOf('/')+1));
+		return (treeNode.getParent() == null || surrugateEntry == null)
+				? name : surrugateEntry+" ("+name+")";
 	}
 
 	@Override

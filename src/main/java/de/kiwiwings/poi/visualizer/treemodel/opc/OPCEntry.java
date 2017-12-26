@@ -54,6 +54,7 @@ import de.kiwiwings.poi.visualizer.treemodel.ole.OLETreeModel;
 public class OPCEntry implements TreeModelEntry {
 	PackagePart packagePart;
 	final DefaultMutableTreeNode treeNode;
+	final TreeModelEntry surrugateEntry;
 	File oleFile;
 	
 	@Autowired
@@ -66,11 +67,15 @@ public class OPCEntry implements TreeModelEntry {
 	public OPCEntry(final PackagePart packagePart, final DefaultMutableTreeNode treeNode) {
 		this.packagePart = packagePart;
 		this.treeNode = treeNode;
+		Object oldUserObject = treeNode.getUserObject();
+		surrugateEntry = (oldUserObject instanceof TreeModelEntry) ? (TreeModelEntry)oldUserObject : null;
 	}
 	
 	@Override
 	public String toString() {
-		return escapeString(packagePart.getPartName().getName().replaceAll(".*/", ""));
+		final String name = escapeString(packagePart.getPartName().getName().replaceAll(".*/", ""));
+		return (treeNode.getParent() == null || surrugateEntry == null)
+				? name : surrugateEntry+" ("+name+")";
 	}
 	
 	@Override

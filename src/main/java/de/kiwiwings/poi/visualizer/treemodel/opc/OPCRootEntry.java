@@ -16,6 +16,8 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.opc;
 
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
+
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.Date;
@@ -54,7 +56,9 @@ public class OPCRootEntry extends OPCDirEntry {
 
 	@Override
 	public String toString() {
-		return "opc";
+		final String name = "opc";
+		return (treeNode.getParent() == null || surrugateEntry == null)
+				? name : surrugateEntry+" ("+name+")";
 	}
 	
 	@Override
