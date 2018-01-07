@@ -26,6 +26,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.apache.poi.ddf.EscherContainerRecord;
 import org.apache.poi.ddf.EscherRecord;
+import org.apache.poi.hslf.model.textproperties.TextProp;
+import org.apache.poi.hslf.model.textproperties.TextPropCollection;
 import org.apache.poi.hslf.record.CurrentUserAtom;
 import org.apache.poi.hslf.record.ExOleObjStg;
 import org.apache.poi.hslf.record.HSLFEscherClientDataRecord;
@@ -33,6 +35,7 @@ import org.apache.poi.hslf.record.PPDrawing;
 import org.apache.poi.hslf.record.PPDrawingGroup;
 import org.apache.poi.hslf.record.Record;
 import org.apache.poi.hslf.record.RecordContainer;
+import org.apache.poi.hslf.record.TxMasterStyleAtom;
 import org.apache.poi.hslf.usermodel.HSLFPictureData;
 import org.apache.poi.hslf.usermodel.HSLFSlideShow;
 import org.apache.poi.poifs.filesystem.DirectoryNode;
@@ -100,6 +103,31 @@ public class HSLFTreeModel implements TreeModelSource {
 				loadEscherRecords(childNode, Collections.singletonList(((PPDrawingGroup)r).getDggContainer()));
 			} else if (r instanceof ExOleObjStg) {
 				loadOleEmbed(childNode, (ExOleObjStg)r);
+			} else if (r instanceof TxMasterStyleAtom) {
+				loadTextProp(childNode, "characterStyles", ((TxMasterStyleAtom)r).getCharacterStyles());
+				loadTextProp(childNode, "paragraphStyles", ((TxMasterStyleAtom)r).getParagraphStyles());
+			}
+		}
+	}
+
+	private void loadTextProp(final DefaultMutableTreeNode parentNode, String name, List<TextPropCollection> props) {
+		final DefaultMutableTreeNode childNode = new DefaultMutableTreeNode();
+		final HSLFNamedEntry childNE = appContext.getBean(HSLFNamedEntry.class, name, childNode);
+		childNode.setUserObject(childNE);
+		parentNode.add(childNode);
+		int textBegin = 0;
+		for (TextPropCollection tpc : props) {
+			final int textEnd = textBegin+tpc.getCharactersCovered();
+			final DefaultMutableTreeNode textNode = new DefaultMutableTreeNode();
+			final HSLFNamedEntry textNE = appContext.getBean(HSLFNamedEntry.class, textBegin+"-"+textEnd+" (i"+tpc.getIndentLevel()+")", textNode);
+			textNode.setUserObject(textNE);
+			childNode.add(textNode);
+			textBegin = textEnd;
+			for (TextProp tp : tpc.getTextPropList()) {
+				final DefaultMutableTreeNode propNode = new DefaultMutableTreeNode();
+				final HSLFTextPropEntry propEntry = appContext.getBean(HSLFTextPropEntry.class, tp, propNode);
+				propNode.setUserObject(propEntry);
+				textNode.add(propNode);
 			}
 		}
 	}
