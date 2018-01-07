@@ -59,8 +59,13 @@ public class OPCDirEntry implements TreeModelEntry {
 
 	@Override
 	public void activate() {
-		treeObservable.setBinarySource(() -> new ByteArrayEditableData());
-		treeObservable.setSourceType(SourceType.empty);
+		if (surrugateEntry != null) {
+			surrugateEntry.activate();
+		} else {
+			treeObservable.setBinarySource(() -> new ByteArrayEditableData());
+			treeObservable.setSourceType(SourceType.empty);
+		}
+		
 		setProperties();
 	}
 

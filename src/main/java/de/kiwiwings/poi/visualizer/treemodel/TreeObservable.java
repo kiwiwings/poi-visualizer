@@ -17,11 +17,21 @@
 package de.kiwiwings.poi.visualizer.treemodel;
 
 import java.io.IOException;
+import java.io.StringReader;
+import java.util.Map.Entry;
 import java.util.Observable;
 import java.util.Observer;
 
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+import javax.json.JsonReader;
+import javax.json.JsonReaderFactory;
+import javax.json.JsonValue;
+
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import de.kiwiwings.poi.visualizer.BinarySource;
 
@@ -45,7 +55,7 @@ public class TreeObservable extends Observable {
 		return () -> getCachedBinary();
 	}
 
-	public void setBinarySource(BinarySource binarySource) {
+	public void setBinarySource(final BinarySource binarySource) {
 		this.binarySource = binarySource;
 		this.cachedBinary = null;
 		setChanged();
@@ -55,7 +65,7 @@ public class TreeObservable extends Observable {
 		return sourceType;
 	}
 	
-	public void setSourceType(SourceType sourceType) {
+	public void setSourceType(final SourceType sourceType) {
 		this.sourceType = sourceType;
 		setChanged();
 	}
@@ -73,17 +83,42 @@ public class TreeObservable extends Observable {
 		return properties;
 	}
 
-	public void setProperties(String properties) {
+	public void setProperties(final String properties) {
 		this.properties = properties;
 		setChanged();
 	}
+	
+	public void mergeProperties(final String properties) {
+		if (StringUtils.isEmpty(properties)) {
+			return;
+		}
+		
+		if (StringUtils.isEmpty(getProperties())) {
+			setProperties(properties);
+			return;
+		}
+		
+		final JsonReaderFactory fact = Json.createReaderFactory(null);
+		final JsonReader r1 = fact.createReader(new StringReader(getProperties()));
+		final JsonObjectBuilder jbf = Json.createObjectBuilder(r1.readObject());
 
-	public void setTreeEntryListener(TreeModelEntry entry) {
+		final JsonReader r2 = fact.createReader(new StringReader(getProperties()));
+		final JsonObject obj2 = r2.readObject();
+		
+		for (Entry<String, JsonValue> jv : obj2.entrySet()) {
+			jbf.add(jv.getKey(), jv.getValue());
+		}
+		
+		setProperties(jbf.build().toString());
+	}
+	
+
+	public void setTreeEntryListener(final TreeModelEntry entry) {
 		deleteObserver(new Observer() {
 			@Override
-			public void update(Observable o, Object arg) {}
+			public void update(final Observable o, final Object arg) {}
 			@Override
-			public boolean equals(Object o) {
+			public boolean equals(final Object o) {
 				return o instanceof TreeModelEntry;
 			}
 		});

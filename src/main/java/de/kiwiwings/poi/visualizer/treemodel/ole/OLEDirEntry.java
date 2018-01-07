@@ -48,11 +48,12 @@ public class OLEDirEntry extends OLEEntry {
 	@Override
 	protected void setProperties() {
 		final DirectoryNode dirNode = (DirectoryNode)entry;
-		treeObservable.setProperties(null);
 
 		final JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
 		ClassID storageClsid = dirNode.getStorageClsid();
-		if (storageClsid != null) {
+		if (storageClsid == null) {
+			jsonBuilder.addNull("storage_clsid");
+		} else {
 			jsonBuilder.add("storage_clsid", storageClsid.toString());
 		}
 		
@@ -63,6 +64,11 @@ public class OLEDirEntry extends OLEEntry {
 			}
 		});
 		
-		treeObservable.setProperties(jsonBuilder.build().toString());
+		final String props = jsonBuilder.build().toString();
+		if (surrugateEntry != null) {
+			treeObservable.mergeProperties(props);
+		} else {
+			treeObservable.setProperties(props);
+		}
 	}
 }

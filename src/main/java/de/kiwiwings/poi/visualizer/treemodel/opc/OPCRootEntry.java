@@ -62,6 +62,16 @@ public class OPCRootEntry extends OPCDirEntry {
 	}
 	
 	@Override
+	public void activate() {
+		if (surrugateEntry != null) {
+			surrugateEntry.activate();
+			setProperties();
+		} else {
+			super.activate();
+		}
+	}
+
+	@Override
 	protected void setProperties() {
 		try {
 			final PackageProperties props = opcPackage.getPackageProperties();
@@ -96,9 +106,9 @@ public class OPCRootEntry extends OPCDirEntry {
 				}
 			}
 			
-			treeObservable.setProperties(jsonBuilder.build().toString());
+			treeObservable.mergeProperties(jsonBuilder.build().toString());
 		} catch (InvalidFormatException e) {
-			treeObservable.setProperties(null);
+			treeObservable.mergeProperties(null);
 		}
 	}
 }
