@@ -18,6 +18,8 @@ package de.kiwiwings.poi.visualizer.treemodel;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -94,6 +96,18 @@ public class TreeModelUtils {
 						}
 					}
 					jsonBuilder.add(propName, arrBuilder.build());
+				} else if (retVal instanceof Double) {
+					jsonBuilder.add(propName, ((Double)retVal).doubleValue());
+				} else if (retVal instanceof Boolean) {
+					jsonBuilder.add(propName, ((Boolean)retVal).booleanValue());
+				} else if (retVal instanceof Integer || retVal instanceof Short || retVal instanceof Byte) {
+					jsonBuilder.add(propName, ((Number)retVal).intValue());
+				} else if (retVal instanceof Long) {
+					jsonBuilder.add(propName, ((Long)retVal).longValue());
+				} else if (retVal instanceof BigDecimal) {
+					jsonBuilder.add(propName, (BigDecimal)retVal);
+				} else if (retVal instanceof BigInteger) {
+					jsonBuilder.add(propName, (BigInteger)retVal);
 				} else {
 					jsonBuilder.add(propName, retVal.toString());
 				}

@@ -16,6 +16,7 @@
 
 package de.kiwiwings.poi.visualizer;
 
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
@@ -24,6 +25,9 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Observable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
 import javax.json.Json;
@@ -44,7 +48,6 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import org.exbin.deltahex.swing.CodeArea;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
@@ -118,24 +121,24 @@ public class POIMainFrame extends JFrame {
         contentArea.addTab("properties", propScroll);
 		add(splitPane);
 
-		treeDir.addTreeSelectionListener(e -> loadEntry(e));
-		treeDir.addMouseListener(MLFactory.mousePopup(e -> contextMenu.handleEntryClick(e)));
-        treeObservable.addObserver((o, arg) -> updateCodeArea());
-        treeObservable.addObserver((o, arg) -> updateProperties());
-        addWindowListener(WLFactory.windowClosed(e -> shutdown() ));
+		treeDir.addTreeSelectionListener(this::loadEntry);
+		treeDir.addMouseListener(MLFactory.mousePopup(contextMenu::handleEntryClick));
+        treeObservable.addObserver(this::updateCodeArea);
+        treeObservable.addObserver(this::updateProperties);
+        addWindowListener(WLFactory.windowClosed(this::shutdown));
 
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		setLocationByPlatform(true);
 		setSize(1000,600);
     }
 
-    private void shutdown() {
+    private void shutdown(final WindowEvent e) {
     	// stop timer, otherwise awt event queue is always triggered again
     	codeArea.getCaret().setBlinkRate(0);
     	SwingUtilities.invokeLater(() -> { synchronized(this) { this.notify(); } });
     }
 
-	private void updateCodeArea() {
+	private void updateCodeArea(final Observable o, final Object arg) {
     	try {
     		ByteArrayEditableData data = treeObservable.getBinarySource().getBinaryData();
     		codeArea.setData(data);
@@ -144,7 +147,7 @@ public class POIMainFrame extends JFrame {
     	}
 	}
 
-	private void updateProperties() {
+	private void updateProperties(final Observable o, final Object arg) {
 		final String props = treeObservable.getProperties();
 		if (props == null || "".equals(props)) {
 			propertiesArea.setText("");
@@ -157,7 +160,15 @@ public class POIMainFrame extends JFrame {
 				JsonWriter jWriter = createJsonWriter(writer)
 			) {
 				jWriter.write(jReader.readObject());
-				propertiesArea.setText(writer.toString());
+				final Pattern pat = Pattern.compile("([0-9]+)(,?)$", Pattern.MULTILINE);
+				final Matcher mat = pat.matcher(writer.getBuffer());
+				final StringBuffer buf = new StringBuffer();
+				while (mat.find()) {
+					final long l = Long.parseLong(mat.group(1)); 
+					mat.appendReplacement(buf, mat.group()+" /*0x"+Long.toHexString(l)+"*/");
+				}
+				mat.appendTail(buf);
+				propertiesArea.setText(buf.toString());
 			} catch (IOException ex) {
 				propertiesArea.setText(props);
 			}
