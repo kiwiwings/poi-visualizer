@@ -45,6 +45,7 @@ import javax.swing.WindowConstants;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
 
+import org.apache.poi.hpsf.ClassID;
 import org.exbin.deltahex.swing.CodeArea;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +62,8 @@ import de.kiwiwings.poi.visualizer.xmleditor.XMLEditor;
 public class POIMainFrame extends JFrame {
 
 	private static final long serialVersionUID = 4777146707371974468L;
+
+	private static final Pattern PROPERTY_COMMENT = Pattern.compile("((\\d+)|(\"\\{\\p{XDigit}{8}(-\\p{XDigit}{4}){3}-\\p{XDigit}{12}\\}\"))(,?)$", Pattern.MULTILINE);
 
 	@Autowired
 	private TreeObservable treeObservable;
@@ -98,7 +101,7 @@ public class POIMainFrame extends JFrame {
 	public void setFileTitle(File newFile) {
 		setTitle("POI Visualizer - "+newFile.getName());
 	}
-	
+
 
     @PostConstruct
 	public void init() {
@@ -160,12 +163,21 @@ public class POIMainFrame extends JFrame {
 				JsonWriter jWriter = createJsonWriter(writer)
 			) {
 				jWriter.write(jReader.readObject());
-				final Pattern pat = Pattern.compile("([0-9]+)(,?)$", Pattern.MULTILINE);
-				final Matcher mat = pat.matcher(writer.getBuffer());
+				// add comment for ...
+				// numbers to hexadecimal number
+				// class id to class id name, if possible
+				final Matcher mat = PROPERTY_COMMENT.matcher(writer.getBuffer());
 				final StringBuffer buf = new StringBuffer();
 				while (mat.find()) {
-					final long l = Long.parseLong(mat.group(1)); 
-					mat.appendReplacement(buf, mat.group()+" /*0x"+Long.toHexString(l)+"*/");
+					final String match = mat.group(1);
+					final String comment;
+					if (match.contains("-")) {
+						comment = getNameFromClassID(match);
+					} else {
+						final long l = Long.parseLong(mat.group(1));
+						comment = "0x"+Long.toHexString(l);
+					}
+					mat.appendReplacement(buf, mat.group()+" /*"+comment+"*/");
 				}
 				mat.appendTail(buf);
 				propertiesArea.setText(buf.toString());
@@ -195,5 +207,47 @@ public class POIMainFrame extends JFrame {
 			((TreeModelEntry)userObject).activate();
 			treeObservable.notifyObservers();
 		}
+	}
+
+	
+
+	private static final Object[][] classIdMap = {
+	    { ClassID.OLE10_PACKAGE, "OLE10_PACKAGE" },
+	    { ClassID.PPT_SHOW, "PPT_SHOW" },
+	    { ClassID.XLS_WORKBOOK, "XLS_WORKBOOK" },
+	    { ClassID.TXT_ONLY, "TXT_ONLY" },
+	    { ClassID.EXCEL_V3, "EXCEL_V3" },
+	    { ClassID.EXCEL_V3_CHART, "EXCEL_V3_CHART" },
+	    { ClassID.EXCEL_V3_MACRO, "EXCEL_V3_MACRO" },
+	    { ClassID.EXCEL95, "EXCEL95" },
+	    { ClassID.EXCEL95_CHART, "EXCEL95_CHART" },
+	    { ClassID.EXCEL97, "EXCEL97" },
+	    { ClassID.EXCEL97_CHART, "EXCEL97_CHART" },
+	    { ClassID.EXCEL2003, "EXCEL2003" },
+	    { ClassID.EXCEL2007, "EXCEL2007" },
+	    { ClassID.EXCEL2007_MACRO, "EXCEL2007_MACRO" },
+	    { ClassID.EXCEL2007_XLSB, "EXCEL2007_XLSB" },
+	    { ClassID.EXCEL2010, "EXCEL2010" },
+	    { ClassID.EXCEL2010_CHART, "EXCEL2010_CHART" },
+	    { ClassID.EXCEL2010_ODS, "EXCEL2010_ODS" },
+	    { ClassID.WORD97, "WORD97" },
+	    { ClassID.WORD95, "WORD95" },
+	    { ClassID.WORD2007, "WORD2007" },
+	    { ClassID.WORD2007_MACRO, "WORD2007_MACRO" },
+	    { ClassID.POWERPOINT97, "POWERPOINT97" },
+	    { ClassID.POWERPOINT95, "POWERPOINT95" },
+	    { ClassID.POWERPOINT2007, "POWERPOINT2007" },
+	    { ClassID.POWERPOINT2007_MACRO, "POWERPOINT2007_MACRO" },
+	    { ClassID.EQUATION30, "EQUATION30" },
+	};
+	
+	private String getNameFromClassID(String match) {
+		// TODO replace with ClassIDPredefined enum ...
+		for (Object[] obj : classIdMap) {
+			if (match.contains(obj[0].toString())) {
+				return (String)obj[1];
+			}
+		}
+		return "unknown classid";
 	}
 }
