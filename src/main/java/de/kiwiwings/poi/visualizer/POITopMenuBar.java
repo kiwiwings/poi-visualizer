@@ -42,6 +42,7 @@ import org.apache.poi.util.IOUtils;
 import org.exbin.deltahex.swing.CodeArea;
 import org.exbin.utils.binary_data.BinaryData;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -56,10 +57,7 @@ import de.kiwiwings.poi.visualizer.xmleditor.XMLEditor;
 
 @SuppressWarnings("serial")
 @Component(value="topMenu")
-public class POITopMenuBar extends JMenuBar {
-
-	private boolean isInit = false;
-
+public class POITopMenuBar extends JMenuBar implements InitializingBean {
 
 	@Autowired
 	private ApplicationContext appContext;
@@ -86,13 +84,8 @@ public class POITopMenuBar extends JMenuBar {
 	
 	private File workingDir;
 	
-	@PostConstruct
-	public void init() {
-    	if (isInit) {
-    		return;
-    	}
-    	isInit = true;
-
+	@Override
+	public void afterPropertiesSet() {
     	menuFileOpen = new JMenuItem("Open ...", KeyEvent.VK_O);
     	menuFileOpen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
     	menuFileOpen.addActionListener(e -> loadNewFile());

@@ -29,7 +29,6 @@ import java.util.Observable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.annotation.PostConstruct;
 import javax.json.Json;
 import javax.json.JsonReader;
 import javax.json.JsonWriter;
@@ -48,6 +47,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import org.apache.poi.hpsf.ClassID;
 import org.exbin.deltahex.swing.CodeArea;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -59,7 +59,7 @@ import de.kiwiwings.poi.visualizer.util.WLFactory;
 import de.kiwiwings.poi.visualizer.xmleditor.XMLEditor;
 
 @Component
-public class POIMainFrame extends JFrame {
+public class POIMainFrame extends JFrame implements InitializingBean {
 
 	private static final long serialVersionUID = 4777146707371974468L;
 
@@ -92,8 +92,6 @@ public class POIMainFrame extends JFrame {
 	@Autowired
 	private XMLEditor xmlEditor;
 
-	private boolean isInit = false;
-
 	public POIMainFrame() {
 		super("POI Visualizer");
 	}
@@ -103,19 +101,9 @@ public class POIMainFrame extends JFrame {
 	}
 
 
-    @PostConstruct
-	public void init() {
-    	if (isInit) {
-    		return;
-    	}
-
-    	isInit = true;
-
-    	topMenu.init();
+	@Override
+	public void afterPropertiesSet() {
 		setJMenuBar(topMenu);
-
-		contextMenu.init();
-		xmlEditor.init();
 
         contentArea.addTab("binary", codeArea);
         contentArea.addTab("xml", xmlEditor);

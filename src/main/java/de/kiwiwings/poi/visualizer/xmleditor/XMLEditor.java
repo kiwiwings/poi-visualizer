@@ -22,7 +22,6 @@ import java.io.StringWriter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.annotation.PostConstruct;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.text.Document;
@@ -30,6 +29,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.exbin.utils.binary_data.ByteArrayEditableData;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.DOMConfiguration;
@@ -46,7 +46,7 @@ import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
 
 @SuppressWarnings("serial")
 @Component(value="xmlEditor")
-public class XMLEditor extends JScrollPane {
+public class XMLEditor extends JScrollPane implements InitializingBean {
 
 	@Autowired
 	private TreeObservable treeObservable;
@@ -54,16 +54,8 @@ public class XMLEditor extends JScrollPane {
 	@Autowired
 	private XmlTextPane xmlPane;
 
-	private boolean isInit = false;
-
-	
-	@PostConstruct
-	public void init() {
-		if (isInit) {
-			return;
-		}
-		isInit = true;
-
+	@Override
+	public void afterPropertiesSet() {
 		xmlPane.setEditable(false);
 		xmlPane.setText("");
 		setViewportView(xmlPane);

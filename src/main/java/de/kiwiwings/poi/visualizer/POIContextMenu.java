@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import javax.annotation.PostConstruct;
 import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -31,6 +30,7 @@ import javax.swing.JTree;
 import javax.swing.tree.TreePath;
 
 import org.exbin.utils.binary_data.ByteArrayEditableData;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -39,22 +39,15 @@ import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 
 @Component
 @SuppressWarnings("serial")
-public class POIContextMenu extends JPopupMenu {
+public class POIContextMenu extends JPopupMenu implements InitializingBean {
 
-	private boolean isInit = false;
 	private JMenuItem saveStream;
 
 	@Autowired
 	private TreeObservable treeObservable;
 
-	@PostConstruct
-	public void init() {
-    	if (isInit) {
-    		return;
-    	}
-
-    	isInit = true;
-
+	@Override
+	public void afterPropertiesSet() {
     	saveStream = new JMenuItem("Save ...", KeyEvent.VK_S);
     	saveStream.addActionListener(e -> saveFile());
 

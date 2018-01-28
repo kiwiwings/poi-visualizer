@@ -28,8 +28,6 @@ public class POIVisualizer {
 	private POIMainFrame frame;
 	
 	public void start() throws InterruptedException {
-		// postConstruct is not called
-		frame.init();
 		frame.setVisible(true);
 		synchronized (frame) {
 			frame.wait();
