@@ -187,5 +187,6 @@ public class POITopMenuBar extends JMenuBar implements InitializingBean {
 		treeRoot.removeAllChildren();
 		treeRoot.setUserObject("Not loaded ...");
 		treeModel.reload(treeRoot);
+		treeObservable.setProperties("");
 	}
 }

@@ -132,7 +132,9 @@ public class POIMainFrame extends JFrame implements InitializingBean {
 	private void updateCodeArea(final Observable o, final Object arg) {
     	try {
     		ByteArrayEditableData data = treeObservable.getBinarySource().getBinaryData();
-    		codeArea.setData(data);
+    		if (data != null) {
+    			codeArea.setData(data);
+    		}
     	} catch (IOException|TreeModelLoadException ex) {
     		// todo
     	}

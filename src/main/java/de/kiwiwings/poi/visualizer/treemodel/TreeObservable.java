@@ -129,7 +129,7 @@ public class TreeObservable extends Observable {
 	}
 	
 	private ByteArrayEditableData getCachedBinary() throws IOException, TreeModelLoadException {
-		if (cachedBinary == null) {
+		if (cachedBinary == null && binarySource != null) {
 			cachedBinary = binarySource.getBinaryData();
 		}
 		return cachedBinary;
