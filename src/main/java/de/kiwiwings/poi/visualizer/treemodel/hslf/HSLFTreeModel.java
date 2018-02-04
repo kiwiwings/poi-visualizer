@@ -19,6 +19,7 @@ package de.kiwiwings.poi.visualizer.treemodel.hslf;
 import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.getNamedTreeNode;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -26,9 +27,11 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.apache.poi.ddf.EscherContainerRecord;
 import org.apache.poi.ddf.EscherRecord;
+import org.apache.poi.ddf.EscherTextboxRecord;
 import org.apache.poi.hslf.model.textproperties.TextProp;
 import org.apache.poi.hslf.model.textproperties.TextPropCollection;
 import org.apache.poi.hslf.record.CurrentUserAtom;
+import org.apache.poi.hslf.record.EscherTextboxWrapper;
 import org.apache.poi.hslf.record.ExOleObjStg;
 import org.apache.poi.hslf.record.HSLFEscherClientDataRecord;
 import org.apache.poi.hslf.record.PPDrawing;
@@ -38,6 +41,7 @@ import org.apache.poi.hslf.record.RecordContainer;
 import org.apache.poi.hslf.record.TxMasterStyleAtom;
 import org.apache.poi.hslf.usermodel.HSLFPictureData;
 import org.apache.poi.hslf.usermodel.HSLFSlideShow;
+import org.apache.poi.hslf.usermodel.HSLFTextBox;
 import org.apache.poi.poifs.filesystem.DirectoryNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -160,6 +164,9 @@ public class HSLFTreeModel implements TreeModelSource {
 			} else if (r instanceof HSLFEscherClientDataRecord) {
 				final List<? extends Record> hslfRecords = ((HSLFEscherClientDataRecord)r).getHSLFChildRecords();
 				loadRecords(childNode, hslfRecords.toArray(new Record[hslfRecords.size()]));
+			} else if (r instanceof EscherTextboxRecord) {
+				final EscherTextboxWrapper wrapper = new EscherTextboxWrapper((EscherTextboxRecord)r);
+				loadRecords(childNode, wrapper.getChildRecords());
 			}
 		}
 	}
