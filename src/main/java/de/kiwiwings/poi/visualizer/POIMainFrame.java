@@ -37,11 +37,11 @@ import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextPane;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.event.TreeSelectionEvent;
+import javax.swing.text.JTextComponent;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.apache.poi.hpsf.ClassID;
@@ -78,7 +78,7 @@ public class POIMainFrame extends JFrame implements InitializingBean {
 	private CodeArea codeArea;
 
 	@Autowired
-	private JTextPane propertiesArea;
+	private JTextComponent propertiesArea;
 
 	@Autowired
 	private JSplitPane splitPane;

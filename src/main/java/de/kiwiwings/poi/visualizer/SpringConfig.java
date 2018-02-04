@@ -19,8 +19,9 @@ package de.kiwiwings.poi.visualizer;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextPane;
+import javax.swing.JTextArea;
 import javax.swing.JTree;
+import javax.swing.text.JTextComponent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeSelectionModel;
@@ -68,8 +69,10 @@ public class SpringConfig {
 	}
 
 	@Bean
-	public JTextPane propertiesArea() {
-		return new JTextPane();
+	public JTextComponent propertiesArea() {
+		final JTextArea propertiesArea = new JTextArea();
+		propertiesArea.setLineWrap(false);
+		return propertiesArea;
 	}
 
 	@Bean
