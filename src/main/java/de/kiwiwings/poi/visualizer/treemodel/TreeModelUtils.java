@@ -118,7 +118,7 @@ public class TreeModelUtils {
 
 	private static boolean useReturnType(Method m) {
 		final Class<?> retType = m.getReturnType();
-		return m.getName().equals("getEscherProperties") ||
+		return m.getName().matches("get(EscherProperties|TabStops)") ||
 		(!(
 			retType.isArray() ||
 			Iterator.class.isAssignableFrom(retType) ||

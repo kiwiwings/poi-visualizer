@@ -19,7 +19,6 @@ package de.kiwiwings.poi.visualizer.treemodel.hslf;
 import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.getNamedTreeNode;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -38,10 +37,12 @@ import org.apache.poi.hslf.record.PPDrawing;
 import org.apache.poi.hslf.record.PPDrawingGroup;
 import org.apache.poi.hslf.record.Record;
 import org.apache.poi.hslf.record.RecordContainer;
+import org.apache.poi.hslf.record.StyleTextPropAtom;
+import org.apache.poi.hslf.record.TextBytesAtom;
+import org.apache.poi.hslf.record.TextCharsAtom;
 import org.apache.poi.hslf.record.TxMasterStyleAtom;
 import org.apache.poi.hslf.usermodel.HSLFPictureData;
 import org.apache.poi.hslf.usermodel.HSLFSlideShow;
-import org.apache.poi.hslf.usermodel.HSLFTextBox;
 import org.apache.poi.poifs.filesystem.DirectoryNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -84,6 +85,7 @@ public class HSLFTreeModel implements TreeModelSource {
 	}
 
 	private void loadRecords(final DefaultMutableTreeNode parentNode, final Record[] records) {
+		int parentTextSize = 0;
 		for (final Record r : records) {
 			final String qualifier;
 			if (r instanceof RecordContainer) {
@@ -99,6 +101,14 @@ public class HSLFTreeModel implements TreeModelSource {
 			childNode.setUserObject(dirEntry);
 			parentNode.add(childNode);
 
+			// need to store text size, in case we need to parse a styletextproperties atom later
+			if (r instanceof TextBytesAtom) {
+				parentTextSize = ((TextBytesAtom)r).getText().length();
+			} else if (r instanceof TextCharsAtom) {
+				parentTextSize = ((TextCharsAtom)r).getText().length();
+			}
+			
+			
 			if (r instanceof RecordContainer) {
 				loadRecords(childNode, ((RecordContainer)r).getChildRecords());
 			} else if (r instanceof PPDrawing) {
@@ -108,8 +118,14 @@ public class HSLFTreeModel implements TreeModelSource {
 			} else if (r instanceof ExOleObjStg) {
 				loadOleEmbed(childNode, (ExOleObjStg)r);
 			} else if (r instanceof TxMasterStyleAtom) {
-				loadTextProp(childNode, "characterStyles", ((TxMasterStyleAtom)r).getCharacterStyles());
-				loadTextProp(childNode, "paragraphStyles", ((TxMasterStyleAtom)r).getParagraphStyles());
+				final TxMasterStyleAtom tmsa = (TxMasterStyleAtom)r;
+				loadTextProp(childNode, "characterStyles", tmsa.getCharacterStyles());
+				loadTextProp(childNode, "paragraphStyles", tmsa.getParagraphStyles());
+			} else if (r instanceof StyleTextPropAtom) {
+				final StyleTextPropAtom stpa = (StyleTextPropAtom)r;
+				stpa.setParentTextSize(parentTextSize);
+				loadTextProp(childNode, "characterStyles", stpa.getCharacterStyles());
+				loadTextProp(childNode, "paragraphStyles", stpa.getParagraphStyles());
 			}
 		}
 	}

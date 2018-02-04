@@ -23,7 +23,6 @@ import java.io.IOException;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
-import org.apache.poi.hslf.model.textproperties.TabStopPropCollection;
 import org.apache.poi.hslf.model.textproperties.TextProp;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,19 +63,9 @@ public class HSLFTextPropEntry implements TreeModelEntry {
 
 	@Override
 	public void activate() {
-		treeObservable.setBinarySource(() -> getData());
+		treeObservable.setBinarySource(() -> new ByteArrayEditableData());
 		treeObservable.setSourceType(SourceType.empty);
 		treeObservable.setFileName(null);
 		treeObservable.setProperties(reflectProperties(textProp));
-	}
-
-	private ByteArrayEditableData getData() throws IOException {
-		final ByteArrayEditableData data = new ByteArrayEditableData();
-		if (textProp instanceof TabStopPropCollection) {
-//			try (final OutputStream os = data.getDataOutputStream()) {
-//				TabStopPropCollection col = (TabStopPropCollection)textProp;
-//			}
-		}
-		return data;
 	}
 }
