@@ -16,14 +16,15 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.opc;
 
+import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.tree.DefaultMutableTreeNode;
-
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelSource;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.openxml4j.opc.PackageAccess;
@@ -33,9 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelSource;
 
 @Component
 @Scope("prototype")
@@ -105,6 +103,12 @@ public class OPCTreeModel implements TreeModelSource {
 				final DefaultMutableTreeNode parDir = mapFolders.get(me.getKey());
 				me.getValue().forEach(n -> parDir.add(n));
 			});
+
+			// and at last map the content type
+			final DefaultMutableTreeNode node = new DefaultMutableTreeNode();
+			final OPCContentType entry = appContext.getBean(OPCContentType.class, (File)source, node);
+			node.setUserObject(entry);
+			parent.add(node);
 		} catch (InvalidFormatException ex) {
 			IOUtils.closeQuietly(opc);
 			throw new TreeModelLoadException("Error in opening '"+((File)source).getPath()+"'");

@@ -30,6 +30,7 @@ import java.util.Observable;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
+import org.apache.poi.EmptyFileException;
 import org.apache.poi.openxml4j.opc.PackagePart;
 import org.apache.poi.openxml4j.opc.PackagePartName;
 import org.apache.poi.openxml4j.opc.internal.PackagePropertiesPart;
@@ -130,7 +131,11 @@ public class OPCEntry implements TreeModelEntry {
 		FileMagic fm;
 		try (InputStream is = FileMagic.prepareToCheckMagic(packagePart.getInputStream())) {
 			final ByteArrayEditableData data = new ByteArrayEditableData();
-			fm = FileMagic.valueOf(is);
+			try {
+				fm = FileMagic.valueOf(is);
+			} catch (EmptyFileException e) {
+				return data;
+			}
 			if (fm == FileMagic.OLE2) {
 				if (oleFile == null) {
 					oleFile = copyToTempFile(is);
