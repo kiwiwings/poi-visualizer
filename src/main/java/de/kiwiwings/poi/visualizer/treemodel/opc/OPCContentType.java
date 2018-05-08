@@ -16,36 +16,26 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.opc;
 
-import javax.swing.tree.DefaultMutableTreeNode;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
+import javafx.scene.control.TreeItem;
+import org.apache.poi.util.IOUtils;
+import org.exbin.utils.binary_data.ByteArrayEditableData;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
-import org.apache.poi.util.IOUtils;
-import org.exbin.utils.binary_data.ByteArrayEditableData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
-@Component(value="OPCContentType")
-@Scope("prototype")
 public class OPCContentType implements TreeModelEntry {
     private final byte[] data;
-    final DefaultMutableTreeNode treeNode;
+    final TreeItem<TreeModelEntry> treeNode;
     final TreeModelEntry surrugateEntry;
 
-    @Autowired
-    TreeObservable treeObservable;
+    TreeObservable treeObservable = TreeObservable.getInstance();
 
-    @Autowired
-    private ApplicationContext appContext;
-
-    OPCContentType(File source, final DefaultMutableTreeNode treeNode) throws IOException {
+    OPCContentType(File source, final TreeItem<TreeModelEntry> treeNode) throws IOException {
         try (final ZipFile zipFile = new ZipFile((File)source)) {
             final ZipEntry ze = zipFile.getEntry("[Content_Types].xml");
             try (InputStream is = zipFile.getInputStream(ze)) {
@@ -54,8 +44,7 @@ public class OPCContentType implements TreeModelEntry {
         }
 
         this.treeNode = treeNode;
-        Object oldUserObject = treeNode.getUserObject();
-        surrugateEntry = (oldUserObject instanceof TreeModelEntry) ? (TreeModelEntry)oldUserObject : null;
+        surrugateEntry = treeNode.getValue();
     }
 
     @Override

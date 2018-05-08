@@ -16,29 +16,22 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hssf;
 
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import javafx.scene.control.TreeItem;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+
 import java.io.IOException;
 
-import javax.swing.tree.DefaultMutableTreeNode;
 
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-
-
-@Component(value="HSSFRootEntry")
-@Scope("prototype")
 public class HSSFRootEntry implements TreeModelEntry {
 	HSSFWorkbook wb;
-	final DefaultMutableTreeNode treeNode;
+	final TreeItem<TreeModelEntry> treeNode;
 	final TreeModelEntry surrugateEntry;
 	
-	public HSSFRootEntry(HSSFWorkbook wb, DefaultMutableTreeNode treeNode) {
+	public HSSFRootEntry(HSSFWorkbook wb, TreeItem<TreeModelEntry> treeNode) {
 		this.wb = wb;
 		this.treeNode = treeNode;
-		Object oldUserObject = treeNode.getUserObject();
-		surrugateEntry = (oldUserObject instanceof TreeModelEntry) ? (TreeModelEntry)oldUserObject : null;
+		surrugateEntry = treeNode.getValue();
 	}
 
 	@Override

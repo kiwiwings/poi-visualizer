@@ -16,36 +16,28 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
-
-import java.io.IOException;
-
-import javax.swing.tree.DefaultMutableTreeNode;
-
-import org.apache.poi.hslf.model.textproperties.TextProp;
-import org.exbin.utils.binary_data.ByteArrayEditableData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import javafx.scene.control.TreeItem;
+import org.apache.poi.hslf.model.textproperties.TextProp;
+import org.exbin.utils.binary_data.ByteArrayEditableData;
 
-@Component(value="HSLFTextPropEntry")
-@Scope("prototype")
+import java.io.IOException;
+
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
+
 public class HSLFTextPropEntry implements TreeModelEntry {
 
 	private final TextProp textProp;
 	@SuppressWarnings("unused")
-	private final DefaultMutableTreeNode treeNode;
+	private final TreeItem<TreeModelEntry> treeNode;
 
-	@Autowired
-	TreeObservable treeObservable;
+    private final TreeObservable treeObservable = TreeObservable.getInstance();
 
 	
-	public HSLFTextPropEntry(final TextProp textProp, final DefaultMutableTreeNode treeNode) {
+	public HSLFTextPropEntry(final TextProp textProp, final TreeItem<TreeModelEntry> treeNode) {
 		this.textProp = textProp;
 		this.treeNode = treeNode;
 	}

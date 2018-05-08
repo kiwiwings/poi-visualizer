@@ -16,38 +16,31 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import javafx.scene.control.TreeItem;
+import org.apache.poi.hslf.record.PPDrawing;
+import org.apache.poi.hslf.record.Record;
+import org.exbin.utils.binary_data.ByteArrayEditableData;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-import javax.swing.tree.DefaultMutableTreeNode;
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
 
-import org.apache.poi.hslf.record.PPDrawing;
-import org.exbin.utils.binary_data.ByteArrayEditableData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
-
-@Component(value="HSLFDrawing")
-@Scope("prototype")
 public class HSLFDrawing implements TreeModelEntry {
 
 	private final PPDrawing drawing;
 	@SuppressWarnings("unused")
-	private final DefaultMutableTreeNode treeNode;
+	private final TreeItem<TreeModelEntry> treeNode;
 
-	@Autowired
-	TreeObservable treeObservable;
+    final TreeObservable treeObservable = TreeObservable.getInstance();
 
 	
-	public HSLFDrawing(final PPDrawing drawing, final DefaultMutableTreeNode treeNode) {
-		this.drawing = drawing;
+	public HSLFDrawing(final Record drawing, final TreeItem<TreeModelEntry> treeNode) {
+		this.drawing = (PPDrawing)drawing;
 		this.treeNode = treeNode;
 	}
 

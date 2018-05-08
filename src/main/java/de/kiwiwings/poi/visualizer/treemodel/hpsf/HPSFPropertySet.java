@@ -16,44 +16,33 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hpsf;
 
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import javafx.scene.control.TreeItem;
+import org.apache.poi.hpsf.PropertySet;
+import org.apache.poi.hpsf.WritingNotSupportedException;
+import org.exbin.utils.binary_data.ByteArrayEditableData;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-import javax.swing.tree.DefaultMutableTreeNode;
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
 
-import org.apache.poi.hpsf.PropertySet;
-import org.apache.poi.hpsf.WritingNotSupportedException;
-import org.exbin.utils.binary_data.ByteArrayEditableData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
-
-@Component(value="HPSFPropertySet")
-@Scope("prototype")
 public class HPSFPropertySet implements TreeModelEntry {
 
 	private final PropertySet propertySet;
 	@SuppressWarnings("unused")
-	private final DefaultMutableTreeNode treeNode;
+	private final TreeItem<TreeModelEntry> treeNode;
 	final TreeModelEntry surrugateEntry;
 
-	@Autowired
-	TreeObservable treeObservable;
+    final TreeObservable treeObservable = TreeObservable.getInstance();
 
-	
-	public HPSFPropertySet(final PropertySet propertySet, final DefaultMutableTreeNode treeNode) {
+	public HPSFPropertySet(final PropertySet propertySet, final TreeItem<TreeModelEntry> treeNode) {
 		this.propertySet = propertySet;
 		this.treeNode = treeNode;
-		Object oldUserObject = treeNode.getUserObject();
-		surrugateEntry = (oldUserObject instanceof TreeModelEntry) ? (TreeModelEntry)oldUserObject : null;
+		surrugateEntry = treeNode.getValue();
 	}
-
 
 	@Override
 	public String toString() {

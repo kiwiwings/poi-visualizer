@@ -16,20 +16,12 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.opc;
 
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
-import static de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceOrigin.MENU_EDIT_APPLY;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.Charset;
-import java.util.Observable;
-
-import javax.swing.tree.DefaultMutableTreeNode;
-
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import de.kiwiwings.poi.visualizer.treemodel.ole.OLETreeModel;
+import javafx.scene.control.TreeItem;
 import org.apache.poi.EmptyFileException;
 import org.apache.poi.openxml4j.opc.PackagePart;
 import org.apache.poi.openxml4j.opc.PackagePartName;
@@ -39,37 +31,26 @@ import org.apache.poi.util.IOUtils;
 import org.apache.poi.util.LocaleUtil;
 import org.apache.poi.util.TempFile;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
-import de.kiwiwings.poi.visualizer.treemodel.ole.OLETreeModel;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.util.Observable;
 
-@Component(value="OPCEntry")
-@Scope("prototype")
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
+import static de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceOrigin.MENU_EDIT_APPLY;
+
 public class OPCEntry implements TreeModelEntry {
 	PackagePart packagePart;
-	final DefaultMutableTreeNode treeNode;
+	final TreeItem<TreeModelEntry> treeNode;
 	final TreeModelEntry surrugateEntry;
 	File oleFile;
 	
-	@Autowired
-	TreeObservable treeObservable;
+    final TreeObservable treeObservable = TreeObservable.getInstance();
 
-	@Autowired
-	private ApplicationContext appContext;
-	
-	
-	public OPCEntry(final PackagePart packagePart, final DefaultMutableTreeNode treeNode) {
+	public OPCEntry(final PackagePart packagePart, final TreeItem<TreeModelEntry> treeNode) {
 		this.packagePart = packagePart;
 		this.treeNode = treeNode;
-		Object oldUserObject = treeNode.getUserObject();
-		surrugateEntry = (oldUserObject instanceof TreeModelEntry) ? (TreeModelEntry)oldUserObject : null;
+		surrugateEntry = treeNode.getValue();
 	}
 	
 	@Override
@@ -98,7 +79,7 @@ public class OPCEntry implements TreeModelEntry {
 		ByteArrayEditableData dataTmp;
 		try {
 			dataTmp = getData();
-		} catch (TreeModelLoadException|IOException e) {
+		} catch (TreeModelLoadException |IOException e) {
 			dataTmp = new ByteArrayEditableData(e.getMessage().getBytes(Charset.forName("UTF-8")));
 		}
 		final ByteArrayEditableData data = dataTmp;
@@ -139,9 +120,8 @@ public class OPCEntry implements TreeModelEntry {
 			if (fm == FileMagic.OLE2) {
 				if (oleFile == null) {
 					oleFile = copyToTempFile(is);
-					OLETreeModel poifsNode = appContext.getBean(OLETreeModel.class, treeNode);
-					poifsNode.load(oleFile);
-					((TreeModelEntry)treeNode.getUserObject()).activate();
+					new OLETreeModel().load(treeNode, oleFile);
+					treeNode.getValue().activate();
 				}
 				
 				try (InputStream is2 = new FileInputStream(oleFile)) {

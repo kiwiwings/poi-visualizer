@@ -16,100 +16,93 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.opc;
 
-import javax.swing.tree.DefaultMutableTreeNode;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelFileSource;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
+import javafx.scene.control.TreeItem;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.openxml4j.opc.OPCPackage;
+import org.apache.poi.openxml4j.opc.PackageAccess;
+import org.apache.poi.openxml4j.opc.PackagePart;
+import org.apache.poi.poifs.filesystem.FileMagic;
+import org.apache.poi.util.IOUtils;
+
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelSource;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.openxml4j.opc.OPCPackage;
-import org.apache.poi.openxml4j.opc.PackageAccess;
-import org.apache.poi.openxml4j.opc.PackagePart;
-import org.apache.poi.util.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
+public class OPCTreeModel implements TreeModelFileSource {
+	
+	TreeItem<TreeModelEntry> parent;
 
-@Component
-@Scope("prototype")
-public class OPCTreeModel implements TreeModelSource {
-	
-	final DefaultMutableTreeNode parent;
-
-	@Autowired
-	private ApplicationContext appContext;
-	
-	public OPCTreeModel(final DefaultMutableTreeNode parent) {
-		this.parent = parent;
-	}
-	
 	@Override
-	public void load(Object source) throws TreeModelLoadException {
-		if (!(source instanceof File)) {
-			throw new TreeModelLoadException("source isn't a file.");
-		}
-		
+	public void load(final TreeItem<TreeModelEntry> parent, final File source) throws TreeModelLoadException {
+		this.parent = parent;
+
 		OPCPackage opc = null;
 		try {
-			opc = OPCPackage.open((File)source, PackageAccess.READ_WRITE);
-			OPCRootEntry opcRoot = appContext.getBean(OPCRootEntry.class, opc, parent);
-			parent.setUserObject(opcRoot);
+			final FileMagic fm = FileMagic.valueOf(source);
+			if (fm != FileMagic.OOXML) {
+				throw new TreeModelLoadException("File with file magic '"+fm+"' can't be processed.");
+			}
 
-			final Map<String,DefaultMutableTreeNode> mapFolders = new HashMap<>();
-			final Map<String,List<DefaultMutableTreeNode>> mapFiles = new HashMap<>();
+			opc = OPCPackage.open(source, PackageAccess.READ_WRITE);
+			OPCRootEntry opcRoot = new OPCRootEntry(opc, parent);
+			parent.setValue(opcRoot);
+
+			final Map<String,TreeItem<TreeModelEntry>> mapFolders = new HashMap<>();
+			final Map<String,List<TreeItem<TreeModelEntry>>> mapFiles = new HashMap<>();
 			mapFolders.put("/", parent);
-			
+
 			// first create the folders, so we don't have folders and files mixed in the tree
 			for (final PackagePart pp : opc.getParts()) {
 				final String uri = pp.getPartName().toString();
-				DefaultMutableTreeNode parDir = parent;
+				TreeItem<TreeModelEntry> parDir = parent;
 				for (int idx=1;(idx=uri.indexOf('/',idx)) != -1;idx++) {
 					final String path = uri.substring(0,idx);
-					final DefaultMutableTreeNode dir;
+					final TreeItem<TreeModelEntry> dir;
 					if (mapFolders.containsKey(path)) {
 						dir = mapFolders.get(path);
 					} else {
-						dir = new DefaultMutableTreeNode();
-						final OPCDirEntry entry = appContext.getBean(OPCDirEntry.class, path, dir);
-						dir.setUserObject(entry);
+						dir = new TreeItem<>();
+						final OPCDirEntry entry = new OPCDirEntry(path, dir);
+						dir.setValue(entry);
 						mapFolders.put(path, dir);
-						parDir.add(dir);
+						parDir.getChildren().add(dir);
 					}
 					parDir = dir;
 				}
 
 				// temporarily store the entries
-				final String parPath = ((OPCDirEntry)parDir.getUserObject()).getPath();
-				final List<DefaultMutableTreeNode> listFiles;
+				final String parPath = ((OPCDirEntry)parDir.getValue()).getPath();
+				final List<TreeItem<TreeModelEntry>> listFiles;
 				if (mapFiles.containsKey(parPath)) {
 					listFiles = mapFiles.get(parPath);
 				} else {
-					listFiles = new ArrayList<DefaultMutableTreeNode>();
+					listFiles = new ArrayList<>();
 					mapFiles.put(parPath, listFiles);
 				}
-				final DefaultMutableTreeNode node = new DefaultMutableTreeNode();
-				node.setUserObject(appContext.getBean(OPCEntry.class, pp, node));
+				final TreeItem<TreeModelEntry> node = new TreeItem<>();
+				node.setValue(new OPCEntry(pp, node));
 				listFiles.add(node);
 			}
 
 
 			// then add the items
 			mapFiles.entrySet().stream().forEach(me -> {
-				final DefaultMutableTreeNode parDir = mapFolders.get(me.getKey());
-				me.getValue().forEach(n -> parDir.add(n));
+				final TreeItem<TreeModelEntry> parDir = mapFolders.get(me.getKey());
+				me.getValue().forEach(n -> parDir.getChildren().add(n));
 			});
 
 			// and at last map the content type
-			final DefaultMutableTreeNode node = new DefaultMutableTreeNode();
-			final OPCContentType entry = appContext.getBean(OPCContentType.class, (File)source, node);
-			node.setUserObject(entry);
-			parent.add(node);
-		} catch (InvalidFormatException ex) {
+			final TreeItem<TreeModelEntry> node = new TreeItem<>();
+			final OPCContentType entry = new OPCContentType(source, node);
+			node.setValue(entry);
+			parent.getChildren().add(node);
+		} catch (InvalidFormatException|IOException ex) {
 			IOUtils.closeQuietly(opc);
 			throw new TreeModelLoadException("Error in opening '"+((File)source).getPath()+"'");
 		}

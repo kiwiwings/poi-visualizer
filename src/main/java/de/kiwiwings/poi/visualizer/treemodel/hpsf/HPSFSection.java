@@ -16,41 +16,31 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hpsf;
 
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import javafx.scene.control.TreeItem;
+import org.apache.poi.hpsf.Section;
+import org.apache.poi.hpsf.WritingNotSupportedException;
+import org.exbin.utils.binary_data.ByteArrayEditableData;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-import javax.swing.tree.DefaultMutableTreeNode;
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
 
-import org.apache.poi.hpsf.Section;
-import org.apache.poi.hpsf.WritingNotSupportedException;
-import org.exbin.utils.binary_data.ByteArrayEditableData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
-
-@Component(value="HPSFSection")
-@Scope("prototype")
 public class HPSFSection implements TreeModelEntry {
 
 	private final Section section;
 	@SuppressWarnings("unused")
-	private final DefaultMutableTreeNode treeNode;
+	private final TreeItem<TreeModelEntry> treeNode;
 
-	@Autowired
-	TreeObservable treeObservable;
+    TreeObservable treeObservable = TreeObservable.getInstance();
 
-	
-	public HPSFSection(final Section section, final DefaultMutableTreeNode treeNode) {
+	public HPSFSection(final Section section, final TreeItem<TreeModelEntry> treeNode) {
 		this.section = section;
 		this.treeNode = treeNode;
 	}
-
 
 	@Override
 	public String toString() {

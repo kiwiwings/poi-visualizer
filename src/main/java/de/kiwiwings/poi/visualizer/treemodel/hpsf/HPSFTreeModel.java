@@ -16,46 +16,31 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hpsf;
 
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.getNamedTreeNode;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelDirNodeSource;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
+import javafx.scene.control.TreeItem;
+import org.apache.poi.hpsf.*;
+import org.apache.poi.poifs.filesystem.DirectoryNode;
 
 import java.io.IOException;
 
-import javax.swing.tree.DefaultMutableTreeNode;
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.getNamedTreeNode;
 
-import org.apache.poi.hpsf.DocumentSummaryInformation;
-import org.apache.poi.hpsf.NoPropertySetStreamException;
-import org.apache.poi.hpsf.Property;
-import org.apache.poi.hpsf.PropertySet;
-import org.apache.poi.hpsf.PropertySetFactory;
-import org.apache.poi.hpsf.Section;
-import org.apache.poi.hpsf.SummaryInformation;
-import org.apache.poi.poifs.filesystem.DirectoryNode;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
+public class HPSFTreeModel implements TreeModelDirNodeSource {
 
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelSource;
-
-@Component
-@Scope("prototype")
-public class HPSFTreeModel implements TreeModelSource {
-
-	private final DefaultMutableTreeNode parent;
-
-	@Autowired
-	private ApplicationContext appContext;
-
-	public HPSFTreeModel(final DefaultMutableTreeNode parent) {
-		this.parent = parent;
-	}
+	private TreeItem<TreeModelEntry> parent;
 
 	@Override
-	public void load(Object source) throws TreeModelLoadException {
-		DirectoryNode dn = (DirectoryNode)source;
-		addPropertySet(dn, SummaryInformation.DEFAULT_STREAM_NAME);
-		addPropertySet(dn, DocumentSummaryInformation.DEFAULT_STREAM_NAME);
+	public void load(final TreeItem<TreeModelEntry> parent, final DirectoryNode source) throws TreeModelLoadException {
+		if (!(source.hasEntry(DocumentSummaryInformation.DEFAULT_STREAM_NAME) ||
+			source.hasEntry(SummaryInformation.DEFAULT_STREAM_NAME))) {
+			throw new TreeModelLoadException("not a HPSF model");
+		}
+
+		this.parent = parent;
+		addPropertySet(source, SummaryInformation.DEFAULT_STREAM_NAME);
+		addPropertySet(source, DocumentSummaryInformation.DEFAULT_STREAM_NAME);
 	}
 	
 	private void addPropertySet(final DirectoryNode dn, final String psName) throws TreeModelLoadException {
@@ -69,31 +54,31 @@ public class HPSFTreeModel implements TreeModelSource {
 		} catch (NoPropertySetStreamException | IOException e) {
 			throw new TreeModelLoadException("Can't load property set", e);
 		}
-		final DefaultMutableTreeNode slNode = getNamedTreeNode(parent, psName);
-		final HPSFPropertySet psModel = appContext.getBean(HPSFPropertySet.class, ps, slNode);
-		slNode.setUserObject(psModel);
+		final TreeItem<TreeModelEntry> slNode = getNamedTreeNode(parent, psName);
+		final HPSFPropertySet psModel = new HPSFPropertySet(ps, slNode);
+		slNode.setValue(psModel);
 		
 		for (final Section section : ps.getSections()) {
 			addSection(section, slNode, ps);
 		}
 	}
 	
-	private void addSection(final Section section, final DefaultMutableTreeNode parent, final PropertySet ps) {
-		DefaultMutableTreeNode secNode = new DefaultMutableTreeNode();
-		final HPSFSection secModel = appContext.getBean(HPSFSection.class, section, secNode);
-		secNode.setUserObject(secModel);
-		parent.add(secNode);
+	private void addSection(final Section section, final TreeItem<TreeModelEntry> parent, final PropertySet ps) {
+		TreeItem<TreeModelEntry> secNode = new TreeItem<>();
+		final HPSFSection secModel = new HPSFSection(section, secNode);
+		secNode.setValue(secModel);
+		parent.getChildren().add(secNode);
 		
 		for (final Property p : section.getProperties()) {
 			addProperty(p, secNode, ps);
 		}
 	}
 
-	private void addProperty(final Property property, final DefaultMutableTreeNode parent, final PropertySet ps) {
-		DefaultMutableTreeNode propNode = new DefaultMutableTreeNode();
-		final HPSFProperty propModel = appContext.getBean(HPSFProperty.class, property, propNode);
+	private void addProperty(final Property property, final TreeItem<TreeModelEntry> parent, final PropertySet ps) {
+		TreeItem<TreeModelEntry> propNode = new TreeItem<TreeModelEntry>();
+		final HPSFProperty propModel = new HPSFProperty(property, propNode);
 		propModel.setPropertySet(ps);
-		propNode.setUserObject(propModel);
-		parent.add(propNode);
+		propNode.setValue(propModel);
+		parent.getChildren().add(propNode);
 	}
 }

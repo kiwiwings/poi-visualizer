@@ -1,0 +1,45 @@
+<?import javafx.embed.swing.SwingNode?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxmisc.flowless.VirtualizedScrollPane?>
+<?import org.fxmisc.richtext.CodeArea?>
+<VBox xmlns:fx="http://javafx.com/fxml" fx:controller="de.kiwiwings.poi.visualizer.Controller">
+    <MenuBar fx:id="menuBar" focusTraversable="true">
+        <menus>
+            <Menu text="File">
+                <items>
+                    <MenuItem text="Open" onAction="#handleOpen" accelerator="Shortcut+O"/>
+                    <MenuItem text="Exit" onAction="#handleExit" accelerator="Shortcut+Q"/>
+                </items>
+            </Menu>
+        </menus>
+    </MenuBar>
+
+
+    <SplitPane dividerPositions="0.2" VBox.vgrow="ALWAYS">
+        <items>
+            <TreeView fx:id="treeDir" onMouseClicked="#onClick" onKeyPressed="#onKey">
+
+            </TreeView>
+            <TabPane>
+                <tabs>
+                    <Tab fx:id="binaryTab" text="binary">
+                        <SwingNode fx:id="deltaHexSN"/>
+                    </Tab>
+                    <Tab fx:id="xmlTab" text="XML">
+                        <fx:define>
+                            <CodeArea fx:id="xmlArea" stylesheets="@xml-area.css"/>
+                        </fx:define>
+                        <VirtualizedScrollPane fx:id="xmlEditorPane" content="$xmlArea"/>
+                    </Tab>
+                    <Tab fx:id="propTab" text="Properties">
+                        <fx:define>
+                            <CodeArea fx:id="propertiesArea" stylesheets="@json-area.css"/>
+                        </fx:define>
+                        <VirtualizedScrollPane fx:id="propertiesPane" content="$propertiesArea"/>
+                    </Tab>
+                </tabs>
+            </TabPane>
+        </items>
+    </SplitPane>
+</VBox>

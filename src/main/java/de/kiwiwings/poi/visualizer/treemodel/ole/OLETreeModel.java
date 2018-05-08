@@ -16,47 +16,38 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.ole;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.swing.tree.DefaultMutableTreeNode;
-
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelDirNodeSource;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelFileSource;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
+import javafx.scene.control.TreeItem;
 import org.apache.poi.poifs.filesystem.DirectoryNode;
 import org.apache.poi.poifs.filesystem.Entry;
+import org.apache.poi.poifs.filesystem.FileMagic;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelSource;
+import java.io.File;
+import java.io.IOException;
+import java.util.ServiceLoader;
+import java.util.function.BiFunction;
 
-@Component
-@Scope("prototype")
-public class OLETreeModel implements TreeModelSource {
+public class OLETreeModel implements TreeModelFileSource {
 
-	final DefaultMutableTreeNode parent;
+	private TreeItem<TreeModelEntry> parent;
 
-	@Autowired
-	private ApplicationContext appContext;
-	
 	private POIFSFileSystem poifs;
 
-	public OLETreeModel(final DefaultMutableTreeNode parent) {
-		this.parent = parent;
-	}
-
 	@Override
-	public void load(Object source) throws TreeModelLoadException {
-		if (!(source instanceof File)) {
-			throw new TreeModelLoadException("source isn't a file.");
-		}
+	public void load(TreeItem<TreeModelEntry> parent, File source) throws TreeModelLoadException {
+		this.parent = parent;
 
 		try {
-			poifs = new POIFSFileSystem((File)source);
+			final FileMagic fm = FileMagic.valueOf(source);
+			if (fm != FileMagic.OLE2) {
+				throw new TreeModelLoadException("File with file magic '"+fm+"' can't be processed.");
+			}
+
+			poifs = new POIFSFileSystem(source);
 			traverseFileSystem(poifs.getRoot(), parent);
 			handleInnerModel(poifs, parent);
 		} catch (IOException ex) {
@@ -64,35 +55,36 @@ public class OLETreeModel implements TreeModelSource {
 		}
 	}
 
-	private void traverseFileSystem(Entry poifsNode, DefaultMutableTreeNode treeNode) throws TreeModelLoadException {
-		final String qualifier;
+	private void traverseFileSystem(final Entry poifsNode, final TreeItem<TreeModelEntry> parent) throws TreeModelLoadException {
+		final BiFunction<Entry,TreeItem<TreeModelEntry>,TreeModelEntry> newTME;
 		if (poifsNode.getParent() == null) {
-			qualifier = "OLERootEntry";
+			newTME = OLERootEntry::new;
 		} else if (poifsNode instanceof DirectoryNode) {
-			qualifier = "OLEDirEntry";
+			newTME = OLEDirEntry::new;
 		} else {
-			qualifier = "OLEEntry";
+			newTME = OLEEntry::new;
 		}
 
-		treeNode.setUserObject(appContext.getBean(qualifier, poifsNode, treeNode));
+		parent.setValue(newTME.apply(poifsNode, parent));
+
 		if (poifsNode instanceof DirectoryNode) {
 			for (Entry poifsChild : ((DirectoryNode)poifsNode)) {
-				DefaultMutableTreeNode treeChild = new DefaultMutableTreeNode();
-				treeNode.add(treeChild);
+				TreeItem<TreeModelEntry> treeChild = new TreeItem<>();
+				parent.getChildren().add(treeChild);
 				traverseFileSystem(poifsChild, treeChild);
 			}
 		}
 	}
 
-	private void handleInnerModel(final POIFSFileSystem poifs, DefaultMutableTreeNode treeNode) throws TreeModelLoadException {
-		final List<TreeModelSource> factories =
-			appContext.getBeansOfType(OLETreeModelFactory.class)
-			.values().stream()
-			.map(f -> f.create(poifs, parent))
-			.filter(f -> f != null)
-			.collect(Collectors.toList());
-		for (TreeModelSource tms : factories) {
-			tms.load(poifs.getRoot());
+	private void handleInnerModel(final POIFSFileSystem poifs, final TreeItem<TreeModelEntry> treeNode) throws TreeModelLoadException {
+		final DirectoryNode root = poifs.getRoot();
+		final ServiceLoader<TreeModelDirNodeSource> sl = ServiceLoader.load(TreeModelDirNodeSource.class);
+		for (TreeModelDirNodeSource src : sl) {
+			try {
+				src.load(treeNode, root);
+			} catch (TreeModelLoadException ex) {
+				// TODO: log
+			}
 		}
 	}
 }

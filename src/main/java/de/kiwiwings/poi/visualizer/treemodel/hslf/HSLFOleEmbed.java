@@ -16,48 +16,32 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.swing.tree.DefaultMutableTreeNode;
-
-import org.apache.poi.hslf.record.ExOleObjStg;
-import org.apache.poi.poifs.filesystem.FileMagic;
-import org.apache.poi.util.IOUtils;
-import org.apache.poi.util.TempFile;
-import org.exbin.utils.binary_data.ByteArrayEditableData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
 import de.kiwiwings.poi.visualizer.treemodel.ole.OLETreeModel;
+import javafx.scene.control.TreeItem;
+import org.apache.poi.hslf.record.ExOleObjStg;
+import org.apache.poi.poifs.filesystem.FileMagic;
+import org.apache.poi.util.IOUtils;
+import org.apache.poi.util.TempFile;
+import org.exbin.utils.binary_data.ByteArrayEditableData;
 
-@Component(value="HSLFOleEmbed")
-@Scope("prototype")
+import java.io.*;
+
 public class HSLFOleEmbed implements TreeModelEntry {
 
 	private final ExOleObjStg embed;
 	@SuppressWarnings("unused")
-	private final DefaultMutableTreeNode treeNode;
+	private final TreeItem<TreeModelEntry> treeNode;
 
-	@Autowired
-	TreeObservable treeObservable;
-
-	@Autowired
-	private ApplicationContext appContext;
+    private TreeObservable treeObservable = TreeObservable.getInstance();
 
 	File oleFile;
 
 	
-	public HSLFOleEmbed(final ExOleObjStg embed, final DefaultMutableTreeNode treeNode) {
+	public HSLFOleEmbed(final ExOleObjStg embed, final TreeItem<TreeModelEntry> treeNode) {
 		this.embed = embed;
 		this.treeNode = treeNode;
 	}
@@ -90,9 +74,9 @@ public class HSLFOleEmbed implements TreeModelEntry {
 			if (fm == FileMagic.OLE2) {
 				if (oleFile == null) {
 					oleFile = copyToTempFile(is);
-					OLETreeModel poifsNode = appContext.getBean(OLETreeModel.class, treeNode);
-					poifsNode.load(oleFile);
-					((TreeModelEntry)treeNode.getUserObject()).activate();
+					OLETreeModel poifsNode = new OLETreeModel();
+					poifsNode.load(treeNode, oleFile);
+					treeNode.getValue().activate();
 				}
 				
 				try (InputStream is2 = new FileInputStream(oleFile)) {

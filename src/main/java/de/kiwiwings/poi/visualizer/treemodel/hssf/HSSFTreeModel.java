@@ -16,47 +16,46 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hssf;
 
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.getNamedTreeNode;
-
-import java.io.IOException;
-import java.util.List;
-
-import javax.swing.tree.DefaultMutableTreeNode;
-
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelDirNodeSource;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
+import javafx.scene.control.TreeItem;
 import org.apache.poi.hssf.model.InternalWorkbook;
 import org.apache.poi.hssf.record.Record;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.DirectoryNode;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelSource;
+import java.io.IOException;
+import java.util.List;
 
-@Component
-@Scope("prototype")
-public class HSSFTreeModel implements TreeModelSource {
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.getNamedTreeNode;
 
-	private final DefaultMutableTreeNode parent;
+public class HSSFTreeModel implements TreeModelDirNodeSource {
+
+	private TreeItem<TreeModelEntry> parent;
 
 	private HSSFWorkbook wb;
 
-	@Autowired
-	private ApplicationContext appContext;
-
-	public HSSFTreeModel(final DefaultMutableTreeNode parent) {
-		this.parent = parent;
-	}
-
 	@Override
-	public void load(Object source) throws TreeModelLoadException {
+	public void load(final TreeItem<TreeModelEntry> parent, final DirectoryNode source) throws TreeModelLoadException {
+		boolean found = false;
+		for (final String wbName : InternalWorkbook.WORKBOOK_DIR_ENTRY_NAMES) {
+			if (source.hasEntry(wbName)) {
+				found = true;
+				break;
+			}
+		}
+
+		if (!found) {
+			throw new TreeModelLoadException("not a HSSF model");
+		}
+
+
 		try {
-			wb = new HSSFWorkbook((DirectoryNode)source, true);
-			final DefaultMutableTreeNode wbNode = getNamedTreeNode(parent, InternalWorkbook.WORKBOOK_DIR_ENTRY_NAMES);
-			HSSFRootEntry rootNode = appContext.getBean(HSSFRootEntry.class, wb, wbNode);
-			wbNode.setUserObject(rootNode);
+			wb = new HSSFWorkbook(source, true);
+			final TreeItem<TreeModelEntry> wbNode = getNamedTreeNode(parent, InternalWorkbook.WORKBOOK_DIR_ENTRY_NAMES);
+			HSSFRootEntry rootNode = new HSSFRootEntry(wb, wbNode);
+			wbNode.setValue(rootNode);
 			
 			loadRecords(wbNode, wb.getInternalWorkbook().getRecords());
 		} catch (IOException e) {
@@ -64,12 +63,12 @@ public class HSSFTreeModel implements TreeModelSource {
 		}
 	}
 
-	private void loadRecords(final DefaultMutableTreeNode parentNode, final List<Record> records) {
+	private void loadRecords(final TreeItem<TreeModelEntry> parentNode, final List<Record> records) {
 		for (final Record r : records) {
-			final DefaultMutableTreeNode rNode = new DefaultMutableTreeNode();
-			final HSSFEntry entry = appContext.getBean(HSSFEntry.class, r, rNode);
-			rNode.setUserObject(entry);
-			parentNode.add(rNode);
+			final TreeItem<TreeModelEntry> rNode = new TreeItem<>();
+			final HSSFEntry entry = new HSSFEntry(r, rNode);
+			rNode.setValue(entry);
+			parentNode.getChildren().add(rNode);
 		}
 	}
 }

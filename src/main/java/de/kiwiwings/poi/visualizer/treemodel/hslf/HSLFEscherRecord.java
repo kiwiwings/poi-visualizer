@@ -16,35 +16,27 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
-
-import java.io.IOException;
-
-import javax.swing.tree.DefaultMutableTreeNode;
-
-import org.apache.poi.ddf.EscherRecord;
-import org.exbin.utils.binary_data.ByteArrayEditableData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import javafx.scene.control.TreeItem;
+import org.apache.poi.ddf.EscherRecord;
+import org.exbin.utils.binary_data.ByteArrayEditableData;
 
-@Component(value="HSLFEscherRecord")
-@Scope("prototype")
+import java.io.IOException;
+
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
+
 public class HSLFEscherRecord implements TreeModelEntry {
 
 	private final EscherRecord escher;
 	@SuppressWarnings("unused")
-	private final DefaultMutableTreeNode treeNode;
+	private final TreeItem<TreeModelEntry> treeNode;
 
-	@Autowired
-	TreeObservable treeObservable;
+    private final TreeObservable treeObservable = TreeObservable.getInstance();
 
 	
-	public HSLFEscherRecord(final EscherRecord escher, final DefaultMutableTreeNode treeNode) {
+	public HSLFEscherRecord(final EscherRecord escher, final TreeItem<TreeModelEntry> treeNode) {
 		this.escher = escher;
 		this.treeNode = treeNode;
 	}

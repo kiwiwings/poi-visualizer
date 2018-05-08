@@ -16,35 +16,29 @@
 
 package de.kiwiwings.poi.visualizer.treemodel;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import javafx.scene.control.TreeItem;
 
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
-import javax.swing.tree.DefaultMutableTreeNode;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class TreeModelUtils {
 	// replace control characters
-	private static final Pattern CTRL_CHR = Pattern.compile("\\p{Cc}"); 
+	private static final Pattern CTRL_CHR = Pattern.compile("\\p{Cc}");
 	private static final Pattern getter = Pattern.compile("(?:is|get)(.*)");
 
-	public static DefaultMutableTreeNode getNamedTreeNode(final DefaultMutableTreeNode parent, final String... names) {
+	public static TreeItem<TreeModelEntry> getNamedTreeNode(final TreeItem<TreeModelEntry> parent, final String... names) {
 		final List<String> escNames = Arrays.asList(names).stream().map(n -> escapeString(n)).collect(Collectors.toList());
-		final int cnt = parent.getChildCount();
-		for (int i=0; i<cnt; i++) {
-			final DefaultMutableTreeNode c = (DefaultMutableTreeNode)parent.getChildAt(i);
-			final TreeModelEntry poifsEntry = (TreeModelEntry)c.getUserObject();
+		for (TreeItem<TreeModelEntry> c : parent.getChildren()) {
+			final TreeModelEntry poifsEntry = c.getValue();
 			if (escNames.contains(poifsEntry.toString())) {
 				return c;
 			}

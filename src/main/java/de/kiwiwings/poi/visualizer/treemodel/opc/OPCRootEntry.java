@@ -16,26 +16,20 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.opc;
 
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
-
-import java.io.IOException;
-import java.text.DateFormat;
-import java.util.Date;
-
-import javax.json.Json;
-import javax.json.JsonObjectBuilder;
-import javax.swing.tree.DefaultMutableTreeNode;
-
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import javafx.scene.control.TreeItem;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.openxml4j.opc.PackageProperties;
 import org.apache.poi.openxml4j.util.Nullable;
 import org.apache.poi.util.LocaleUtil;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
-@Component(value="OPCRootEntry")
-@Scope("prototype")
+import javax.json.Json;
+import javax.json.JsonObjectBuilder;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.util.Date;
+
 public class OPCRootEntry extends OPCDirEntry {
 	private static final DateFormat DATE_FMT =
 		DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, LocaleUtil.getUserLocale());
@@ -44,7 +38,7 @@ public class OPCRootEntry extends OPCDirEntry {
 	
 	
 	
-	OPCRootEntry(final OPCPackage opcPackage, final DefaultMutableTreeNode treeNode) {
+	OPCRootEntry(final OPCPackage opcPackage, final TreeItem<TreeModelEntry> treeNode) {
 		super("/", treeNode);
 		this.opcPackage = opcPackage;
 	}

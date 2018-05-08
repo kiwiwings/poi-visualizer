@@ -16,67 +16,48 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.getNamedTreeNode;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-
-import javax.swing.tree.DefaultMutableTreeNode;
-
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelDirNodeSource;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
+import javafx.scene.control.TreeItem;
 import org.apache.poi.ddf.EscherContainerRecord;
 import org.apache.poi.ddf.EscherRecord;
 import org.apache.poi.ddf.EscherTextboxRecord;
 import org.apache.poi.hslf.model.textproperties.TextProp;
 import org.apache.poi.hslf.model.textproperties.TextPropCollection;
-import org.apache.poi.hslf.record.CurrentUserAtom;
-import org.apache.poi.hslf.record.EscherTextboxWrapper;
-import org.apache.poi.hslf.record.ExOleObjStg;
-import org.apache.poi.hslf.record.HSLFEscherClientDataRecord;
-import org.apache.poi.hslf.record.PPDrawing;
-import org.apache.poi.hslf.record.PPDrawingGroup;
-import org.apache.poi.hslf.record.Record;
-import org.apache.poi.hslf.record.RecordContainer;
-import org.apache.poi.hslf.record.StyleTextPropAtom;
-import org.apache.poi.hslf.record.TextBytesAtom;
-import org.apache.poi.hslf.record.TextCharsAtom;
-import org.apache.poi.hslf.record.TxMasterStyleAtom;
+import org.apache.poi.hslf.record.*;
 import org.apache.poi.hslf.usermodel.HSLFPictureData;
 import org.apache.poi.hslf.usermodel.HSLFSlideShow;
 import org.apache.poi.poifs.filesystem.DirectoryNode;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelSource;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.BiFunction;
 
-@Component
-@Scope("prototype")
-public class HSLFTreeModel implements TreeModelSource {
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.getNamedTreeNode;
 
-	private final DefaultMutableTreeNode parent;
+public class HSLFTreeModel implements TreeModelDirNodeSource {
+
+	private TreeItem<TreeModelEntry> parent;
 
 	private HSLFSlideShow ppt;
 
-	@Autowired
-	private ApplicationContext appContext;
-
-	public HSLFTreeModel(final DefaultMutableTreeNode parent) {
-		this.parent = parent;
-	}
-
 	@Override
-	public void load(Object source) throws TreeModelLoadException {
+	public void load(final TreeItem<TreeModelEntry> parent, final DirectoryNode source) throws TreeModelLoadException {
+		this.parent = parent;
+
+		if (!source.hasEntry(HSLFSlideShow.POWERPOINT_DOCUMENT)) {
+			throw new TreeModelLoadException("not a HSLF model");
+		}
+
 		try {
-			ppt = new HSLFSlideShow((DirectoryNode)source);
-			final DefaultMutableTreeNode slNode = getNamedTreeNode(parent, HSLFSlideShow.POWERPOINT_DOCUMENT);
-			HSLFRootEntry rootNode = appContext.getBean(HSLFRootEntry.class, ppt, slNode);
-			slNode.setUserObject(rootNode);
+			ppt = new HSLFSlideShow(source);
+			final TreeItem<TreeModelEntry> slNode = getNamedTreeNode(parent, HSLFSlideShow.POWERPOINT_DOCUMENT);
+			HSLFRootEntry rootNode = new HSLFRootEntry(ppt, slNode);
+			slNode.setValue(rootNode);
 			loadRecords(slNode,ppt.getSlideShowImpl().getRecords());
-			final DefaultMutableTreeNode picNode = getNamedTreeNode(parent, "Pictures");
+			final TreeItem<TreeModelEntry> picNode = getNamedTreeNode(parent, "Pictures");
 			loadPictures(picNode);
 			loadCurrentUser(parent);
 		} catch (IOException e) {
@@ -84,22 +65,21 @@ public class HSLFTreeModel implements TreeModelSource {
 		}
 	}
 
-	private void loadRecords(final DefaultMutableTreeNode parentNode, final Record[] records) {
+	private void loadRecords(final TreeItem<TreeModelEntry> parentNode, final Record[] records) {
 		int parentTextSize = 0;
 		for (final Record r : records) {
-			final String qualifier;
+			final BiFunction<Record,TreeItem<TreeModelEntry>,TreeModelEntry> newTME;
 			if (r instanceof RecordContainer) {
-				qualifier = "HSLFDirEntry";
+				newTME = HSLFDirEntry::new;
 			} else if (r instanceof PPDrawing) {
-				qualifier = "HSLFDrawing";
+				newTME = HSLFDrawing::new;
 			} else {
-				qualifier = "HSLFEntry";
+				newTME = HSLFEntry::new;
 			}
 
-			final DefaultMutableTreeNode childNode = new DefaultMutableTreeNode();
-			final TreeModelEntry dirEntry = (TreeModelEntry)appContext.getBean(qualifier, r, childNode);
-			childNode.setUserObject(dirEntry);
-			parentNode.add(childNode);
+			final TreeItem<TreeModelEntry> childNode = new TreeItem<>();
+			childNode.setValue(newTME.apply(r, childNode));
+			parentNode.getChildren().add(childNode);
 
 			// need to store text size, in case we need to parse a styletextproperties atom later
 			if (r instanceof TextBytesAtom) {
@@ -110,7 +90,7 @@ public class HSLFTreeModel implements TreeModelSource {
 			
 			
 			if (r instanceof RecordContainer) {
-				loadRecords(childNode, ((RecordContainer)r).getChildRecords());
+				loadRecords(childNode, r.getChildRecords());
 			} else if (r instanceof PPDrawing) {
 				loadEscherRecords(childNode, ((PPDrawing)r).getEscherRecords());
 			} else if (r instanceof PPDrawingGroup) {
@@ -130,51 +110,51 @@ public class HSLFTreeModel implements TreeModelSource {
 		}
 	}
 
-	private void loadTextProp(final DefaultMutableTreeNode parentNode, String name, List<TextPropCollection> props) {
-		final DefaultMutableTreeNode childNode = new DefaultMutableTreeNode();
-		final HSLFNamedEntry childNE = appContext.getBean(HSLFNamedEntry.class, name, childNode);
-		childNode.setUserObject(childNE);
-		parentNode.add(childNode);
+	private void loadTextProp(final TreeItem<TreeModelEntry> parentNode, String name, List<TextPropCollection> props) {
+		final TreeItem<TreeModelEntry> childNode = new TreeItem<>();
+		final HSLFNamedEntry childNE = new HSLFNamedEntry(name, childNode);
+		childNode.setValue(childNE);
+		parentNode.getChildren().add(childNode);
 		int textBegin = 0;
 		for (TextPropCollection tpc : props) {
 			final int textEnd = textBegin+tpc.getCharactersCovered();
-			final DefaultMutableTreeNode textNode = new DefaultMutableTreeNode();
-			final HSLFNamedEntry textNE = appContext.getBean(HSLFNamedEntry.class, textBegin+"-"+textEnd+" (i"+tpc.getIndentLevel()+")", textNode);
-			textNode.setUserObject(textNE);
-			childNode.add(textNode);
+			final TreeItem<TreeModelEntry> textNode = new TreeItem<>();
+			final HSLFNamedEntry textNE = new HSLFNamedEntry(textBegin+"-"+textEnd+" (i"+tpc.getIndentLevel()+")", textNode);
+			textNode.setValue(textNE);
+			childNode.getChildren().add(textNode);
 			textBegin = textEnd;
 			for (TextProp tp : tpc.getTextPropList()) {
-				final DefaultMutableTreeNode propNode = new DefaultMutableTreeNode();
-				final HSLFTextPropEntry propEntry = appContext.getBean(HSLFTextPropEntry.class, tp, propNode);
-				propNode.setUserObject(propEntry);
-				textNode.add(propNode);
+				final TreeItem<TreeModelEntry> propNode = new TreeItem<>();
+				final HSLFTextPropEntry propEntry = new HSLFTextPropEntry(tp, propNode);
+				propNode.setValue(propEntry);
+				textNode.getChildren().add(propNode);
 			}
 		}
 	}
 	
-	private void loadOleEmbed(final DefaultMutableTreeNode parentNode, ExOleObjStg record) {
-		final DefaultMutableTreeNode childNode = new DefaultMutableTreeNode();
-		final TreeModelEntry oleEntry = appContext.getBean(HSLFOleEmbed.class, record, childNode);
-		childNode.setUserObject(oleEntry);
-		parentNode.add(childNode);
+	private void loadOleEmbed(final TreeItem<TreeModelEntry> parentNode, ExOleObjStg record) {
+		final TreeItem<TreeModelEntry> childNode = new TreeItem<>();
+		final TreeModelEntry oleEntry = new HSLFOleEmbed(record, childNode);
+		childNode.setValue(oleEntry);
+		parentNode.getChildren().add(childNode);
 	}
 
-	private void loadPictures(final DefaultMutableTreeNode parentNode) {
+	private void loadPictures(final TreeItem<TreeModelEntry> parentNode) {
 		for (HSLFPictureData p : ppt.getPictureData()) {
-			final DefaultMutableTreeNode childNode = new DefaultMutableTreeNode();
-			final HSLFPictureEntry pic = appContext.getBean(HSLFPictureEntry.class, p, childNode);
-			childNode.setUserObject(pic);
-			parentNode.add(childNode);
+			final TreeItem<TreeModelEntry> childNode = new TreeItem<>();
+			final HSLFPictureEntry pic = new HSLFPictureEntry(p, childNode);
+			childNode.setValue(pic);
+			parentNode.getChildren().add(childNode);
 		}
 
 	}
 
-	private void loadEscherRecords(final DefaultMutableTreeNode parentNode, List<EscherRecord> records) {
+	private void loadEscherRecords(final TreeItem<TreeModelEntry> parentNode, List<EscherRecord> records) {
 		for (EscherRecord r : records) {
-			final DefaultMutableTreeNode childNode = new DefaultMutableTreeNode();
-			final HSLFEscherRecord escher = appContext.getBean(HSLFEscherRecord.class, r, childNode);
-			childNode.setUserObject(escher);
-			parentNode.add(childNode);
+			final TreeItem<TreeModelEntry> childNode = new TreeItem<>();
+			final HSLFEscherRecord escher = new HSLFEscherRecord(r, childNode);
+			childNode.setValue(escher);
+			parentNode.getChildren().add(childNode);
 			if (r instanceof EscherContainerRecord) {
 				loadEscherRecords(childNode, ((EscherContainerRecord)r).getChildRecords());
 			} else if (r instanceof HSLFEscherClientDataRecord) {
@@ -187,10 +167,10 @@ public class HSLFTreeModel implements TreeModelSource {
 		}
 	}
 	
-	private void loadCurrentUser(final DefaultMutableTreeNode parentNode) {
-		final DefaultMutableTreeNode cuNode = getNamedTreeNode(parentNode, "Current User");
+	private void loadCurrentUser(final TreeItem<TreeModelEntry> parentNode) {
+		final TreeItem<TreeModelEntry> cuNode = getNamedTreeNode(parentNode, "Current User");
 		final CurrentUserAtom cu = ppt.getSlideShowImpl().getCurrentUserAtom();
-		final HSLFCurrentUser cuModel = appContext.getBean(HSLFCurrentUser.class, cu, cuNode);
-		cuNode.setUserObject(cuModel);
+		final HSLFCurrentUser cuModel = new HSLFCurrentUser(cu, cuNode);
+		cuNode.setValue(cuModel);
 	}
 }

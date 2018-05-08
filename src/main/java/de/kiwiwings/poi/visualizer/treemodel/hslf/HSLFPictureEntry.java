@@ -16,35 +16,27 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
-
-import java.io.IOException;
-
-import javax.swing.tree.DefaultMutableTreeNode;
-
-import org.apache.poi.hslf.usermodel.HSLFPictureData;
-import org.exbin.utils.binary_data.ByteArrayEditableData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import javafx.scene.control.TreeItem;
+import org.apache.poi.hslf.usermodel.HSLFPictureData;
+import org.exbin.utils.binary_data.ByteArrayEditableData;
 
-@Component(value="HSLFPictureEntry")
-@Scope("prototype")
+import java.io.IOException;
+
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
+
 public class HSLFPictureEntry implements TreeModelEntry {
 
 	private final HSLFPictureData picture;
 	@SuppressWarnings("unused")
-	private final DefaultMutableTreeNode treeNode;
+	private final TreeItem<TreeModelEntry> treeNode;
 
-	@Autowired
-	TreeObservable treeObservable;
+    private final TreeObservable treeObservable = TreeObservable.getInstance();
 
 	
-	public HSLFPictureEntry(final HSLFPictureData picture, final DefaultMutableTreeNode treeNode) {
+	public HSLFPictureEntry(final HSLFPictureData picture, final TreeItem<TreeModelEntry> treeNode) {
 		this.picture = picture;
 		this.treeNode = treeNode;
 	}

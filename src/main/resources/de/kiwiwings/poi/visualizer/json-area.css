@@ -1,0 +1,39 @@
+/* NOTE: the order of the following styles is important! */
+
+
+.prop_name {
+    -fx-pattern: '(?m)^\s*(\"[^\"]+\")\s*:';
+    -fx-fill: purple;
+    -fx-font-weight: bold;
+}
+
+.prop_value_string {
+    -fx-pattern: ':\s*(\"[^\"]*\")\s*,?';
+    -fx-fill: dodgerblue;
+    -fx-font-weight: bold;
+}
+
+.prop_value_boolean {
+    -fx-pattern: ':\s*(true|false)\s*,?';
+    -fx-fill: darkcyan;
+    -fx-font-weight: bold;
+}
+
+.prop_value_number {
+    -fx-pattern: ':\s*((0x)?\d+)\s*,?';
+    -fx-fill: darkcyan;
+    -fx-font-weight: bold;
+}
+
+.prop_comment_number {
+    -fx-pattern: '(?m)(/\*.*\*/)\s*$';
+    -fx-fill: olive;
+    -fx-font-style: italic;
+}
+
+/* END of ordered block */
+
+
+.paragraph-box:has-caret {
+    -fx-background-color: #f2f9fc;
+}

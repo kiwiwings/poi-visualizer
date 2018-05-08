@@ -1,0 +1,45 @@
+/* NOTE: the order of the following styles is important! */
+
+
+.tag_start {
+    -fx-pattern: '(?i)(</?[a-z]+[a-z0-9\-_]*(:[a-z]+[a-z0-9\-_]*)?)';
+    -fx-fill: darkcyan;
+    -fx-font-weight: bold;
+}
+
+.cdata {
+    -fx-pattern: '(<\!\[CDATA\[.*?\]\]>)';
+    -fx-fill: gray;
+    -fx-font-weight: bold;
+}
+
+.attr_name {
+    -fx-pattern: '(?i)(\s*[a-z]+[a-z0-9\-_]*(:[a-z]+[a-z0-9\-_]*)?\s*\=\s*)';
+    -fx-fill: purple;
+    -fx-font-weight: bold;
+}
+
+.tag_end {
+    -fx-pattern: '(((?<!-)>|/>)[\r\n]*)';
+    -fx-fill: darkcyan;
+    -fx-font-weight: bold;
+}
+
+.attr_value {
+    -fx-pattern: '\s*\=\s*(\"[^\"]*\")';
+    -fx-fill: dodgerblue;
+    -fx-font-weight: bold;
+}
+
+.comment {
+    -fx-pattern: '(<\!--.*?-->)';
+    -fx-fill: olive;
+    -fx-font-style: italic;
+}
+
+/* END of ordered block */
+
+
+.paragraph-box:has-caret {
+    -fx-background-color: #f2f9fc;
+}

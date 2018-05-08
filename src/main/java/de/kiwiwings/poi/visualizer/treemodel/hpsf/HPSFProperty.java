@@ -16,44 +16,34 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hpsf;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
-import javax.json.Json;
-import javax.json.JsonObjectBuilder;
-import javax.swing.tree.DefaultMutableTreeNode;
-
-import org.apache.poi.hpsf.HPSFException;
-import org.apache.poi.hpsf.Property;
-import org.apache.poi.hpsf.PropertySet;
-import org.apache.poi.hpsf.Thumbnail;
-import org.apache.poi.hpsf.Variant;
-import org.apache.poi.hpsf.VariantSpy;
-import org.apache.poi.hpsf.VariantSupport;
-import org.apache.poi.hpsf.wellknown.PropertyIDMap;
-import org.exbin.utils.binary_data.ByteArrayEditableData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import javafx.scene.control.TreeItem;
+import org.apache.poi.hpsf.*;
+import org.apache.poi.hpsf.wellknown.PropertyIDMap;
+import org.apache.poi.util.LittleEndianByteArrayInputStream;
+import org.exbin.utils.binary_data.ByteArrayEditableData;
 
-@Component(value="HPSFProperty")
-@Scope("prototype")
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObjectBuilder;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+
 public class HPSFProperty implements TreeModelEntry {
 
 	private final Property property;
 	@SuppressWarnings("unused")
-	private final DefaultMutableTreeNode treeNode;
+	private final TreeItem<TreeModelEntry> treeNode;
 	PropertySet propertySet;
 
-	@Autowired
-	TreeObservable treeObservable;
+    TreeObservable treeObservable = TreeObservable.getInstance();
 
 	
-	public HPSFProperty(final Property property, final DefaultMutableTreeNode treeNode) {
+	public HPSFProperty(final Property property, final TreeItem<TreeModelEntry> treeNode) {
 		this.property = property;
 		this.treeNode = treeNode;
 	}
@@ -157,9 +147,13 @@ public class HPSFProperty implements TreeModelEntry {
         case Variant.VT_ARRAY | Variant.VT_UI2:
         case Variant.VT_ARRAY | Variant.VT_UI4:
         case Variant.VT_ARRAY | Variant.VT_INT:
-        case Variant.VT_ARRAY | Variant.VT_UINT:
-			jsonBuilder.add("Value", VariantSpy.arrayToJson(property, propertySet));
+        case Variant.VT_ARRAY | Variant.VT_UINT: {
+			Array arr = new Array();
+			LittleEndianByteArrayInputStream leis = new LittleEndianByteArrayInputStream((byte[]) property.getValue());
+			arr.read(leis);
+			jsonBuilder.add("Value", vecArrToJson(arr.getValues(), property, propertySet));
 			break;
+		}
         case Variant.VT_VECTOR | Variant.VT_I2:
         case Variant.VT_VECTOR | Variant.VT_I4:
         case Variant.VT_VECTOR | Variant.VT_R4:
@@ -180,9 +174,13 @@ public class HPSFProperty implements TreeModelEntry {
         case Variant.VT_VECTOR | Variant.VT_LPWSTR:
         case Variant.VT_VECTOR | Variant.VT_FILETIME:
         case Variant.VT_VECTOR | Variant.VT_CF:
-        case Variant.VT_VECTOR | Variant.VT_CLSID:
-			jsonBuilder.add("Value", VariantSpy.vectorToJson(property, propertySet));
+        case Variant.VT_VECTOR | Variant.VT_CLSID: {
+			Vector vec = new Vector((short) (property.getType() & 0x0FFF));
+			LittleEndianByteArrayInputStream leis = new LittleEndianByteArrayInputStream((byte[]) property.getValue());
+			vec.read(leis);
+			jsonBuilder.add("Value", vecArrToJson(vec.getValues(), property, propertySet));
 			break;
+		}
 		default:
 			if (property.getValue() == null) {
 				jsonBuilder.addNull("Value");
@@ -193,4 +191,64 @@ public class HPSFProperty implements TreeModelEntry {
 		}
 		return jsonBuilder.build().toString();
 	}
+
+	private static JsonArray vecArrToJson(TypedPropertyValue[] values, Property property, PropertySet propertySet) {
+		final JsonArrayBuilder jsonBuilder = Json.createArrayBuilder();
+		for (final TypedPropertyValue v : values) {
+			switch ((int)property.getType() & 0x0FFF) {
+				case Variant.VT_I2:
+				case Variant.VT_I4:
+				case Variant.VT_R4:
+				case Variant.VT_R8:
+				case Variant.VT_I1:
+				case Variant.VT_UI1:
+				case Variant.VT_UI2:
+				case Variant.VT_UI4:
+				case Variant.VT_I8:
+				case Variant.VT_UI8:
+				case Variant.VT_ERROR:
+					jsonBuilder.add(v.getValue().toString());
+					break;
+
+				// simplified/combined instanceof-check because of VT_VARIANT
+				case Variant.VT_BSTR:
+				case Variant.VT_LPSTR:
+				case Variant.VT_BOOL:
+				case Variant.VT_LPWSTR:
+				case Variant.VT_FILETIME:
+				case Variant.VT_CLSID:
+				case Variant.VT_VARIANT:
+					final Object obj = v.getValue();
+					if (obj instanceof CodePageString) {
+						try {
+							jsonBuilder.add(((CodePageString)obj).getJavaValue(propertySet.getFirstSection().getCodepage()));
+						} catch (UnsupportedEncodingException e) {
+							jsonBuilder.add(e.getMessage());
+						}
+					} else if (obj instanceof VariantBool) {
+						jsonBuilder.add(((VariantBool)obj).getValue());
+					} else if (obj instanceof UnicodeString) {
+						jsonBuilder.add(((UnicodeString)v.getValue()).toJavaString());
+					} else if (obj instanceof Filetime) {
+						jsonBuilder.add(((Filetime)v.getValue()).getJavaValue().toString());
+					} else if (obj instanceof ClassID) {
+						jsonBuilder.add(((ClassID)v.getValue()).toString());
+					} else {
+						jsonBuilder.add(v.getValue().toString());
+					}
+					break;
+
+
+				default:
+				case Variant.VT_CF:
+				case Variant.VT_DATE:
+				case Variant.VT_CY:
+					jsonBuilder.add("<unsupported>");
+					break;
+			}
+		}
+
+		return jsonBuilder.build();
+	}
+
 }

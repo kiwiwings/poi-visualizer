@@ -16,22 +16,18 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
-import java.io.IOException;
-
-import javax.swing.tree.DefaultMutableTreeNode;
-
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import javafx.scene.control.TreeItem;
+import org.apache.poi.hslf.record.Record;
 import org.apache.poi.hslf.record.RecordContainer;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import java.io.IOException;
 
-@Component(value="HSLFDirEntry")
-@Scope("prototype")
 public class HSLFDirEntry extends HSLFEntry {
 	
-	public HSLFDirEntry(final RecordContainer path, final DefaultMutableTreeNode treeNode) {
+	public HSLFDirEntry(final Record path, final TreeItem<TreeModelEntry> treeNode) {
 		super(path, treeNode);
 	}
 

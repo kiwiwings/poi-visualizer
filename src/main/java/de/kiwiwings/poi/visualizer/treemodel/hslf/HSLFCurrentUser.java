@@ -16,36 +16,28 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import javafx.scene.control.TreeItem;
+import org.apache.poi.hslf.record.CurrentUserAtom;
+import org.exbin.utils.binary_data.ByteArrayEditableData;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-import javax.swing.tree.DefaultMutableTreeNode;
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
 
-import org.apache.poi.hslf.record.CurrentUserAtom;
-import org.exbin.utils.binary_data.ByteArrayEditableData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
-
-@Component(value="HSLFCurrentUser")
-@Scope("prototype")
 public class HSLFCurrentUser implements TreeModelEntry {
 
 	private final CurrentUserAtom currentUser;
 	@SuppressWarnings("unused")
-	private final DefaultMutableTreeNode treeNode;
+	private final TreeItem<TreeModelEntry> treeNode;
 
-	@Autowired
-	TreeObservable treeObservable;
+    TreeObservable treeObservable = TreeObservable.getInstance();
 
 	
-	public HSLFCurrentUser(final CurrentUserAtom currentUser, final DefaultMutableTreeNode treeNode) {
+	public HSLFCurrentUser(final CurrentUserAtom currentUser, final TreeItem<TreeModelEntry> treeNode) {
 		this.currentUser = currentUser;
 		this.treeNode = treeNode;
 	}

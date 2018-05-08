@@ -16,38 +16,27 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.opc;
 
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
-
-import java.io.IOException;
-
-import javax.swing.tree.DefaultMutableTreeNode;
-
-import org.exbin.utils.binary_data.ByteArrayEditableData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import javafx.scene.control.TreeItem;
+import org.exbin.utils.binary_data.ByteArrayEditableData;
 
-@Component(value="OPCDirEntry")
-@Primary
-@Scope("prototype")
+import java.io.IOException;
+
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
+
 public class OPCDirEntry implements TreeModelEntry {
 	final String path;
-	final DefaultMutableTreeNode treeNode;
+	final TreeItem<TreeModelEntry> treeNode;
 	final TreeModelEntry surrugateEntry;
 
-	@Autowired
-	TreeObservable treeObservable;
+    final TreeObservable treeObservable = TreeObservable.getInstance();
 	
-	public OPCDirEntry(final String path, final DefaultMutableTreeNode treeNode) {
+	public OPCDirEntry(final String path, final TreeItem<TreeModelEntry> treeNode) {
 		this.path = path;
 		this.treeNode = treeNode;
-		Object oldUserObject = treeNode.getUserObject();
-		surrugateEntry = (oldUserObject instanceof TreeModelEntry) ? (TreeModelEntry)oldUserObject : null;
+		surrugateEntry = treeNode.getValue();
 	}
 
 	@Override

@@ -16,17 +16,12 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-import javax.swing.tree.DefaultMutableTreeNode;
-
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import de.kiwiwings.poi.visualizer.treemodel.opc.OPCTreeModel;
+import javafx.scene.control.TreeItem;
 import org.apache.poi.hslf.record.Record;
 import org.apache.poi.hslf.record.UnknownRecordPlaceholder;
 import org.apache.poi.poifs.filesystem.FileMagic;
@@ -34,34 +29,22 @@ import org.apache.poi.util.BoundedInputStream;
 import org.apache.poi.util.IOUtils;
 import org.apache.poi.util.TempFile;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
-import de.kiwiwings.poi.visualizer.treemodel.opc.OPCTreeModel;
+import java.io.*;
 
-@Component(value="HSLFEntry")
-@Scope("prototype")
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
+
 public class HSLFEntry implements TreeModelEntry {
 
 	private final Record record;
 	@SuppressWarnings("unused")
-	private final DefaultMutableTreeNode treeNode;
+	private final TreeItem<TreeModelEntry> treeNode;
 	File opcFile;
 
-	@Autowired
-	TreeObservable treeObservable;
+    final TreeObservable treeObservable = TreeObservable.getInstance();
 
-	@Autowired
-	private ApplicationContext appContext;
-
-	
-	public HSLFEntry(final Record record, final DefaultMutableTreeNode treeNode) {
+	public HSLFEntry(final Record record, final TreeItem<TreeModelEntry> treeNode) {
 		this.record = record;
 		this.treeNode = treeNode;
 	}
@@ -101,9 +84,9 @@ public class HSLFEntry implements TreeModelEntry {
 					try (InputStream is = new BoundedInputStream(data.getDataInputStream(),data.getDataSize())) {
 						opcFile = copyToTempFile(is);
 					}
-					OPCTreeModel opcNode = appContext.getBean(OPCTreeModel.class, treeNode);
-					opcNode.load(opcFile);
-					((TreeModelEntry)treeNode.getUserObject()).activate();
+					OPCTreeModel opcNode = new OPCTreeModel();
+					opcNode.load(treeNode, opcFile);
+					treeNode.getValue().activate();
 				}
 			}
 		}

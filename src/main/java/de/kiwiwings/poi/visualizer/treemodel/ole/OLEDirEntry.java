@@ -16,26 +16,26 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.ole;
 
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
-
-import javax.json.Json;
-import javax.json.JsonObjectBuilder;
-import javax.swing.tree.DefaultMutableTreeNode;
-
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import javafx.scene.control.TreeItem;
 import org.apache.poi.hpsf.ClassID;
 import org.apache.poi.poifs.filesystem.DirectoryNode;
 import org.apache.poi.poifs.filesystem.DocumentNode;
+import org.apache.poi.poifs.filesystem.Entry;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import javax.json.Json;
+import javax.json.JsonObjectBuilder;
 
-@Component(value="OLEDirEntry")
-@Scope("prototype")
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
+
 public class OLEDirEntry extends OLEEntry {
-	public OLEDirEntry(final DirectoryNode dirEntry, final DefaultMutableTreeNode treeNode) {
-		super(dirEntry, treeNode);
+	public OLEDirEntry(final Entry entry, final TreeItem<TreeModelEntry> treeNode) {
+		super(entry, treeNode);
+		if (!(entry instanceof DirectoryNode)) {
+			throw new IllegalArgumentException("not a DirectoryNode");
+		}
 	}
 
 	@Override

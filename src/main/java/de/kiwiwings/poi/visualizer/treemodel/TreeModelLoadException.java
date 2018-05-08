@@ -25,7 +25,7 @@ public class TreeModelLoadException extends Exception {
 	}
 
 	public TreeModelLoadException(String message, Throwable cause, boolean enableSuppression,
-			boolean writableStackTrace) {
+                                  boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);
 	}
 

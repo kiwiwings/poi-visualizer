@@ -16,29 +16,22 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import javafx.scene.control.TreeItem;
+import org.apache.poi.hslf.usermodel.HSLFSlideShow;
+
 import java.io.IOException;
 
-import javax.swing.tree.DefaultMutableTreeNode;
 
-import org.apache.poi.hslf.usermodel.HSLFSlideShow;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-
-
-@Component(value="HSLFRootEntry")
-@Scope("prototype")
 public class HSLFRootEntry implements TreeModelEntry {
 	HSLFSlideShow ppt;
-	final DefaultMutableTreeNode treeNode;
+	final TreeItem<TreeModelEntry> treeNode;
 	final TreeModelEntry surrugateEntry;
 	
-	public HSLFRootEntry(HSLFSlideShow ppt, DefaultMutableTreeNode treeNode) {
+	public HSLFRootEntry(HSLFSlideShow ppt, TreeItem<TreeModelEntry> treeNode) {
 		this.ppt = ppt;
 		this.treeNode = treeNode;
-		Object oldUserObject = treeNode.getUserObject();
-		surrugateEntry = (oldUserObject instanceof TreeModelEntry) ? (TreeModelEntry)oldUserObject : null;
+		surrugateEntry = treeNode.getValue();
 	}
 
 	@Override

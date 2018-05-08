@@ -16,37 +16,29 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hssf;
 
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import javafx.scene.control.TreeItem;
+import org.apache.poi.hssf.record.Record;
+import org.exbin.utils.binary_data.ByteArrayEditableData;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-import javax.swing.tree.DefaultMutableTreeNode;
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
 
-import org.apache.poi.hssf.record.Record;
-import org.exbin.utils.binary_data.ByteArrayEditableData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
-
-@Component(value="HSSFEntry")
-@Scope("prototype")
 public class HSSFEntry implements TreeModelEntry {
 
 	private final Record record;
 	@SuppressWarnings("unused")
-	private final DefaultMutableTreeNode treeNode;
+	private final TreeItem<TreeModelEntry> treeNode;
 
-	@Autowired
-	TreeObservable treeObservable;
+    private final TreeObservable treeObservable = TreeObservable.getInstance();
 
 	
-	public HSSFEntry(final Record record, final DefaultMutableTreeNode treeNode) {
+	public HSSFEntry(final Record record, final TreeItem<TreeModelEntry> treeNode) {
 		this.record = record;
 		this.treeNode = treeNode;
 	}

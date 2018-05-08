@@ -16,15 +16,11 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.ole;
 
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Observable;
-
-import javax.swing.tree.DefaultMutableTreeNode;
-
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
+import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import javafx.scene.control.TreeItem;
 import org.apache.poi.hpsf.NoPropertySetStreamException;
 import org.apache.poi.hpsf.PropertySet;
 import org.apache.poi.hpsf.PropertySetFactory;
@@ -32,26 +28,22 @@ import org.apache.poi.poifs.filesystem.DirectoryNode;
 import org.apache.poi.poifs.filesystem.DocumentNode;
 import org.apache.poi.poifs.filesystem.Entry;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Observable;
 
-@Component(value="OLEPropertySet")
-@Scope("prototype")
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
+
 public class OLEPropertySet implements TreeModelEntry {
 	Entry entry;
 	PropertySet propertySet;
-	final DefaultMutableTreeNode treeNode;
+	final TreeItem<TreeModelEntry> treeNode;
 
-	@Autowired
-	TreeObservable treeObservable;
+    final TreeObservable treeObservable = TreeObservable.getInstance();
 
-	public OLEPropertySet(final Entry entry, final DefaultMutableTreeNode treeNode) throws TreeModelLoadException {
+	public OLEPropertySet(final Entry entry, final TreeItem<TreeModelEntry> treeNode) throws TreeModelLoadException {
 		this.entry = entry;
 		this.treeNode = treeNode;
 		try {

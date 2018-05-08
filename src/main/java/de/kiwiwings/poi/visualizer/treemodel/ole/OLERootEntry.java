@@ -16,18 +16,15 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.ole;
 
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import javafx.scene.control.TreeItem;
+import org.apache.poi.poifs.filesystem.DirectoryNode;
+import org.apache.poi.poifs.filesystem.Entry;
+
 import java.io.IOException;
 
-import javax.swing.tree.DefaultMutableTreeNode;
-
-import org.apache.poi.poifs.filesystem.DirectoryNode;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
-@Component(value="OLERootEntry")
-@Scope("prototype")
 public class OLERootEntry extends OLEDirEntry {
-	public OLERootEntry(final DirectoryNode dirEntry, final DefaultMutableTreeNode treeNode) {
+	public OLERootEntry(final Entry dirEntry, final TreeItem<TreeModelEntry> treeNode) {
 		super(dirEntry, treeNode);
 	}
 

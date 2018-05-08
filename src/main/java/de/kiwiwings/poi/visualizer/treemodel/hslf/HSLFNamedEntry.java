@@ -16,34 +16,26 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
-import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
-
-import java.io.IOException;
-
-import javax.swing.tree.DefaultMutableTreeNode;
-
-import org.exbin.utils.binary_data.ByteArrayEditableData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import javafx.scene.control.TreeItem;
+import org.exbin.utils.binary_data.ByteArrayEditableData;
 
-@Component(value="HSLFNamedEntry")
-@Scope("prototype")
+import java.io.IOException;
+
+import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
+
 public class HSLFNamedEntry implements TreeModelEntry {
 
 	private final String name;
 	@SuppressWarnings("unused")
-	private final DefaultMutableTreeNode treeNode;
+	private final TreeItem<TreeModelEntry> treeNode;
 
-	@Autowired
-	TreeObservable treeObservable;
+    final TreeObservable treeObservable = TreeObservable.getInstance();
 
 	
-	public HSLFNamedEntry(final String name, final DefaultMutableTreeNode treeNode) {
+	public HSLFNamedEntry(final String name, final TreeItem<TreeModelEntry> treeNode) {
 		this.name = name;
 		this.treeNode = treeNode;
 	}
