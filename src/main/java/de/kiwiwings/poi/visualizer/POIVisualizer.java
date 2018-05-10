@@ -33,7 +33,6 @@ public class POIVisualizer extends Application {
 
     @Override
     public void init() throws Exception {
-        final String pckName = POIVisualizer.class.getPackage().getName();
         URL location = getClass().getResource("poivisualizer.fxml");
         FXMLLoader loader = new FXMLLoader(location);
         root = loader.load();

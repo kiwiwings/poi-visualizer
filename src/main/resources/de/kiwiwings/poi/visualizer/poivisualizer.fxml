@@ -9,6 +9,7 @@
             <Menu text="File">
                 <items>
                     <MenuItem text="Open" onAction="#handleOpen" accelerator="Shortcut+O"/>
+                    <MenuItem text="Close" onAction="#closeFile" accelerator="Shortcut+W"/>
                     <MenuItem text="Exit" onAction="#handleExit" accelerator="Shortcut+Q"/>
                 </items>
             </Menu>

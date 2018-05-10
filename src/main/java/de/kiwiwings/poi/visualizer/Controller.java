@@ -83,7 +83,7 @@ public class Controller implements Initializable {
         propertiesAreaFormatter = new CodeFormatter(propertiesArea);
     }
 
-    public void setStage(Stage stage) {
+    void setStage(Stage stage) {
         this.stage = stage;
     }
 
@@ -106,7 +106,7 @@ public class Controller implements Initializable {
     void openFile(File file) {
         workingDir = file.getParentFile();
 
-        clearCurrentFile();
+        closeFile();
 
         TreeItem<TreeModelEntry> treeNode = new TreeItem<>();
         final ServiceLoader<TreeModelFileSource> sl = ServiceLoader.load(TreeModelFileSource.class);
@@ -124,15 +124,14 @@ public class Controller implements Initializable {
         new Alert(AlertType.ERROR, "file is not an Office file.", ButtonType.OK).showAndWait();
     }
 
-    private void clearCurrentFile() {
+    @FXML
+    void closeFile() {
         stage.setTitle("POI Visualizer - <no file>");
         TreeItem<TreeModelEntry> tr = treeDir.getRoot();
         if (tr != null && tr.getValue() != null) {
             IOUtils.closeQuietly(tr.getValue());
         }
         treeDir.setRoot(null);
-//        treeRoot.setUserObject("Not loaded ...");
-//        treeModel.reload(treeRoot);
         treeObservable.setProperties("");
     }
 
