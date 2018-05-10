@@ -17,19 +17,25 @@
 package de.kiwiwings.poi.visualizer.treemodel;
 
 
+import de.kiwiwings.poi.visualizer.DocumentFragment;
+
 import java.io.Closeable;
-import java.util.Observable;
-import java.util.Observer;
 
-public interface TreeModelEntry extends Closeable, Observer {
-    @Override
-    default void update(Observable o, Object arg) {}
-
+public interface TreeModelEntry extends Closeable {
     @Override
     String toString();
 
     /**
-     * Entry is clicked/activate - don't update the observable(s)
+     * Entry is clicked/activated.
+     * The observables will be updated by the caller.
+     * @param fragment the document to receive the entry properties
      */
-    void activate();
+    void activate(DocumentFragment fragment);
+
+//    /**
+//     * Store the document entries into the entry
+//     * @param fragment the document containing the new data
+//     */
+//    void update(DocumentFragment fragment);
+
 }

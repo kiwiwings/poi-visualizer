@@ -16,10 +16,10 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.ole;
 
+import de.kiwiwings.poi.visualizer.DocumentFragment;
+import de.kiwiwings.poi.visualizer.DocumentFragment.SourceType;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
 import de.kiwiwings.poi.visualizer.treemodel.opc.OPCTreeModel;
 import javafx.scene.control.TreeItem;
 import org.apache.poi.poifs.filesystem.DirectoryNode;
@@ -31,18 +31,14 @@ import org.apache.poi.util.TempFile;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 
 import java.io.*;
-import java.util.Observable;
 
 import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
-import static de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceOrigin.MENU_EDIT_APPLY;
 
 public class OLEEntry implements TreeModelEntry {
 	Entry entry;
 	final TreeItem<TreeModelEntry> treeNode;
 	final TreeModelEntry surrugateEntry;
 	File opcFile;
-
-    TreeObservable treeObservable = TreeObservable.getInstance();
 
 	public OLEEntry(final Entry entry, final TreeItem<TreeModelEntry> treeNode) {
 		this.entry = entry;
@@ -58,37 +54,37 @@ public class OLEEntry implements TreeModelEntry {
 	}
 
 	@Override
-	public void activate() {
-		treeObservable.setBinarySource(() -> getData());
-		treeObservable.setSourceType(SourceType.octet);
-		treeObservable.setFileName(escapeString(entry.getName()));
-		setProperties();
+	public void activate(final DocumentFragment fragment) {
+		fragment.setBinarySource(() -> getData(fragment));
+		fragment.setSourceType(SourceType.octet);
+		fragment.setFileName(escapeString(entry.getName()));
+		setProperties(fragment);
 	}
 
-	protected void setProperties() {
-		treeObservable.setProperties(null);
+	protected void setProperties(final DocumentFragment fragment) {
+		fragment.setProperties(null);
 	}
 
-	@Override
-	public void update(Observable o, Object arg) {
-		if (surrugateEntry != null) {
-			surrugateEntry.update(o, arg);
-			return;
-		}
+//	@Override
+//	public void update(Observable o, Object arg) {
+//		if (surrugateEntry != null) {
+//			surrugateEntry.update(o, arg);
+//			return;
+//		}
+//
+//		if (MENU_EDIT_APPLY.equals(arg)) {
+//			if (entry instanceof DocumentNode) {
+//				try (InputStream is = new ByteArrayInputStream(fragment.getBinarySource().getBinaryData().getData())) {
+//					entry = entry.getParent().createDocument(entry.getName(), is);
+//				} catch (TreeModelLoadException |IOException e) {
+//					// TODO: error message
+//					e.printStackTrace();
+//				}
+//			}
+//		}
+//	}
 
-		if (MENU_EDIT_APPLY.equals(arg)) {
-			if (entry instanceof DocumentNode) {
-				try (InputStream is = treeObservable.getBinarySource().getBinaryData().getDataInputStream()) {
-					entry = entry.getParent().createDocument(entry.getName(), is);
-				} catch (TreeModelLoadException |IOException e) {
-					// TODO: error message
-					e.printStackTrace();
-				}
-			}
-		}
-	}
-
-	private ByteArrayEditableData getData() throws IOException, TreeModelLoadException {
+	private ByteArrayEditableData getData(final DocumentFragment fragment) throws IOException, TreeModelLoadException {
 		final DocumentNode dn = (DocumentNode)entry;
 		final DirectoryNode parent = (DirectoryNode)dn.getParent();
 
@@ -100,7 +96,7 @@ public class OLEEntry implements TreeModelEntry {
 				if (opcFile == null) {
 					opcFile = copyToTempFile(is);
 					new OPCTreeModel().load(treeNode, opcFile);
-					treeNode.getValue().activate();
+					treeNode.getValue().activate(fragment);
 				}
 
 				try (InputStream is2 = new FileInputStream(opcFile)) {

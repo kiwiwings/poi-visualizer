@@ -19,7 +19,6 @@ package de.kiwiwings.poi.visualizer;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelFileSource;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 import javafx.embed.swing.SwingNode;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -37,10 +36,10 @@ import org.exbin.deltahex.swing.CodeArea;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 
 import javax.swing.*;
+import java.beans.PropertyChangeEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Observable;
 import java.util.ResourceBundle;
 import java.util.ServiceLoader;
 
@@ -69,14 +68,15 @@ public class Controller implements Initializable {
 
     private File workingDir;
 
-    private final TreeObservable treeObservable = TreeObservable.getInstance();
+    private final DocumentFragment fragment = new DocumentFragment();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         addDeltaHex();
-        treeObservable.addObserver(this::updateCodeArea);
-        treeObservable.addObserver(this::updateProperties);
-        treeObservable.addObserver(this::updateXml);
+
+        fragment.addPropertyChangeListener(this::updateCodeArea);
+        fragment.addPropertyChangeListener(this::updateProperties);
+        fragment.addPropertyChangeListener(this::updateXml);
 
         // reference code formatter because of garbage collection
         xmlAreaFormatter = new CodeFormatter(xmlArea);
@@ -132,7 +132,7 @@ public class Controller implements Initializable {
             IOUtils.closeQuietly(tr.getValue());
         }
         treeDir.setRoot(null);
-        treeObservable.setProperties("");
+        fragment.setProperties("");
     }
 
 
@@ -158,8 +158,8 @@ public class Controller implements Initializable {
         if (node instanceof Text || (node instanceof TreeCell && ((TreeCell) node).getText() != null)) {
             TreeModelEntry tme = treeDir.getSelectionModel().getSelectedItem().getValue();
             if (tme != null) {
-                tme.activate();
-                treeObservable.notifyObservers();
+                tme.activate(fragment);
+                fragment.notifyListeners();
             }
         }
     }
@@ -172,15 +172,16 @@ public class Controller implements Initializable {
         if (ti != null) {
             final TreeModelEntry tme = ti.getValue();
             if (tme != null) {
-                tme.activate();
-                treeObservable.notifyObservers();
+                tme.activate(fragment);
+                fragment.notifyListeners();
             }
         }
     }
 
-    private void updateCodeArea(final Observable o, final Object arg) {
+    @SuppressWarnings("unused")
+    private void updateCodeArea(PropertyChangeEvent evt) {
         try {
-            ByteArrayEditableData data = treeObservable.getBinarySource().getBinaryData();
+            ByteArrayEditableData data = fragment.getBinarySource().getBinaryData();
             if (data != null) {
                 getCodeArea().setData(data);
             }
@@ -190,19 +191,19 @@ public class Controller implements Initializable {
     }
 
     @SuppressWarnings("unused")
-    private void updateProperties(final Observable o, final Object arg) {
-        final String props = treeObservable.getProperties();
+    private void updateProperties(PropertyChangeEvent evt) {
+        final String props = fragment.getProperties();
         propertiesArea.replaceText(CodeIndenter.indentJson(props));
     }
 
     @SuppressWarnings("unused")
-    private void updateXml(final Observable o, final Object arg) {
-        if (treeObservable.getSourceType() != TreeObservable.SourceType.text_xml) {
+    private void updateXml(PropertyChangeEvent evt) {
+        if (fragment.getSourceType() != DocumentFragment.SourceType.text_xml) {
             xmlArea.clear();
         } else {
             // can't use getDataInputStream because of deltahex error in released artifact - fixed in trunk ...
             try {
-                final byte[] xmlInput = treeObservable.getBinarySource().getBinaryData().getData();
+                final byte[] xmlInput = fragment.getBinarySource().getBinaryData().getData();
                 xmlArea.replaceText(CodeIndenter.indentXml(xmlInput));
             } catch (IOException|TreeModelLoadException e) {
                 xmlArea.clear();

@@ -14,20 +14,20 @@
    limitations under the License.
 ==================================================================== */
 
-package de.kiwiwings.poi.visualizer.treemodel;
+package de.kiwiwings.poi.visualizer;
 
-import de.kiwiwings.poi.visualizer.BinarySource;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
 import org.apache.commons.lang3.StringUtils;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 
 import javax.json.*;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Map.Entry;
-import java.util.Observable;
-import java.util.Observer;
 
-public class TreeObservable extends Observable {
+public class DocumentFragment {
     public enum SourceType {
         empty, octet, text_xml, text_plain, image_jpeg, image_png
     }
@@ -36,23 +36,27 @@ public class TreeObservable extends Observable {
         MENU_EDIT_APPLY;
     }
 
-    private TreeObservable() {
-    }
-
-    private static class SingletonHelper {
-        private static final TreeObservable INSTANCE = new TreeObservable();
-    }
-
-    public static TreeObservable getInstance() {
-        return SingletonHelper.INSTANCE;
-    }
-
-
     private BinarySource binarySource;
     private ByteArrayEditableData cachedBinary;
     private String fileName;
     private String properties;
     private SourceType sourceType;
+
+    private PropertyChangeSupport mPcs = new PropertyChangeSupport(this);
+
+    public void
+    addPropertyChangeListener(PropertyChangeListener listener) {
+        mPcs.addPropertyChangeListener(listener);
+    }
+
+    public void
+    removePropertyChangeListener(PropertyChangeListener listener) {
+        mPcs.removePropertyChangeListener(listener);
+    }
+
+    public void notifyListeners() {
+        mPcs.firePropertyChange("DocumentFragment", null, null);
+    }
 
     public BinarySource getBinarySource() {
         return () -> getCachedBinary();
@@ -61,7 +65,6 @@ public class TreeObservable extends Observable {
     public void setBinarySource(final BinarySource binarySource) {
         this.binarySource = binarySource;
         this.cachedBinary = null;
-        setChanged();
     }
 
     public SourceType getSourceType() {
@@ -70,7 +73,6 @@ public class TreeObservable extends Observable {
 
     public void setSourceType(final SourceType sourceType) {
         this.sourceType = sourceType;
-        setChanged();
     }
 
     public String getFileName() {
@@ -79,7 +81,6 @@ public class TreeObservable extends Observable {
 
     public void setFileName(final String fileName) {
         this.fileName = fileName;
-        setChanged();
     }
 
     public String getProperties() {
@@ -88,7 +89,6 @@ public class TreeObservable extends Observable {
 
     public void setProperties(final String properties) {
         this.properties = properties;
-        setChanged();
     }
 
     public void mergeProperties(final String properties) {
@@ -115,23 +115,6 @@ public class TreeObservable extends Observable {
         setProperties(jbf.build().toString());
     }
 
-
-    public void setTreeEntryListener(final TreeModelEntry entry) {
-        deleteObserver(new Observer() {
-            @Override
-            public void update(final Observable o, final Object arg) {
-            }
-
-            @Override
-            public boolean equals(final Object o) {
-                return o instanceof TreeModelEntry;
-            }
-        });
-
-        if (entry != null) {
-            addObserver(entry);
-        }
-    }
 
     private ByteArrayEditableData getCachedBinary() throws IOException, TreeModelLoadException {
         if (cachedBinary == null && binarySource != null) {

@@ -16,11 +16,11 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
+import de.kiwiwings.poi.visualizer.DocumentFragment;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import de.kiwiwings.poi.visualizer.DocumentFragment.SourceType;
 import javafx.scene.control.TreeItem;
 import org.apache.poi.hslf.record.Record;
-import org.apache.poi.hslf.record.RecordContainer;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 
 import java.io.IOException;
@@ -36,10 +36,10 @@ public class HSLFDirEntry extends HSLFEntry {
 	}
 
 	@Override
-	public void activate() {
-		treeObservable.setBinarySource(() -> new ByteArrayEditableData());
-		treeObservable.setSourceType(SourceType.empty);
-		treeObservable.setProperties(null);
+	public void activate(final DocumentFragment fragment) {
+		fragment.setBinarySource(() -> new ByteArrayEditableData());
+		fragment.setSourceType(SourceType.empty);
+		fragment.setProperties(null);
 	}
 
 }

@@ -16,6 +16,7 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
+import de.kiwiwings.poi.visualizer.DocumentFragment;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import javafx.scene.control.TreeItem;
 import org.apache.poi.hslf.usermodel.HSLFSlideShow;
@@ -47,7 +48,7 @@ public class HSLFRootEntry implements TreeModelEntry {
 	}
 
 	@Override
-	public void activate() {
+	public void activate(final DocumentFragment fragment) {
 	}
 
 }

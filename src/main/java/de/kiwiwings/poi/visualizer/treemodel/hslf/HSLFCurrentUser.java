@@ -16,9 +16,9 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
+import de.kiwiwings.poi.visualizer.DocumentFragment;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import de.kiwiwings.poi.visualizer.DocumentFragment.SourceType;
 import javafx.scene.control.TreeItem;
 import org.apache.poi.hslf.record.CurrentUserAtom;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
@@ -34,9 +34,6 @@ public class HSLFCurrentUser implements TreeModelEntry {
 	@SuppressWarnings("unused")
 	private final TreeItem<TreeModelEntry> treeNode;
 
-    TreeObservable treeObservable = TreeObservable.getInstance();
-
-	
 	public HSLFCurrentUser(final CurrentUserAtom currentUser, final TreeItem<TreeModelEntry> treeNode) {
 		this.currentUser = currentUser;
 		this.treeNode = treeNode;
@@ -54,11 +51,11 @@ public class HSLFCurrentUser implements TreeModelEntry {
 	}
 
 	@Override
-	public void activate() {
-		treeObservable.setBinarySource(() -> getData());
-		treeObservable.setSourceType(SourceType.octet);
-		treeObservable.setFileName("current_user.rec");
-		treeObservable.setProperties(reflectProperties(currentUser));
+	public void activate(final DocumentFragment fragment) {
+		fragment.setBinarySource(() -> getData());
+		fragment.setSourceType(SourceType.octet);
+		fragment.setFileName("current_user.rec");
+		fragment.setProperties(reflectProperties(currentUser));
 	}
 
 	private ByteArrayEditableData getData() throws IOException {

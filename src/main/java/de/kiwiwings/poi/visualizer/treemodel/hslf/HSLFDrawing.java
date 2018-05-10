@@ -16,9 +16,9 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
+import de.kiwiwings.poi.visualizer.DocumentFragment;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import de.kiwiwings.poi.visualizer.DocumentFragment.SourceType;
 import javafx.scene.control.TreeItem;
 import org.apache.poi.hslf.record.PPDrawing;
 import org.apache.poi.hslf.record.Record;
@@ -36,9 +36,6 @@ public class HSLFDrawing implements TreeModelEntry {
 	@SuppressWarnings("unused")
 	private final TreeItem<TreeModelEntry> treeNode;
 
-    final TreeObservable treeObservable = TreeObservable.getInstance();
-
-	
 	public HSLFDrawing(final Record drawing, final TreeItem<TreeModelEntry> treeNode) {
 		this.drawing = (PPDrawing)drawing;
 		this.treeNode = treeNode;
@@ -56,11 +53,11 @@ public class HSLFDrawing implements TreeModelEntry {
 	}
 
 	@Override
-	public void activate() {
-		treeObservable.setBinarySource(() -> getData());
-		treeObservable.setSourceType(SourceType.octet);
-		treeObservable.setFileName(toString()+".rec");
-		treeObservable.setProperties(reflectProperties(drawing));
+	public void activate(final DocumentFragment fragment) {
+		fragment.setBinarySource(() -> getData());
+		fragment.setSourceType(SourceType.octet);
+		fragment.setFileName(toString()+".rec");
+		fragment.setProperties(reflectProperties(drawing));
 	}
 
 	private ByteArrayEditableData getData() throws IOException {

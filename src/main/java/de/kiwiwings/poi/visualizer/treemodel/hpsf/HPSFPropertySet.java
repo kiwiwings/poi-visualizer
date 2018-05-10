@@ -16,9 +16,9 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hpsf;
 
+import de.kiwiwings.poi.visualizer.DocumentFragment;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import de.kiwiwings.poi.visualizer.DocumentFragment.SourceType;
 import javafx.scene.control.TreeItem;
 import org.apache.poi.hpsf.PropertySet;
 import org.apache.poi.hpsf.WritingNotSupportedException;
@@ -35,8 +35,6 @@ public class HPSFPropertySet implements TreeModelEntry {
 	@SuppressWarnings("unused")
 	private final TreeItem<TreeModelEntry> treeNode;
 	final TreeModelEntry surrugateEntry;
-
-    final TreeObservable treeObservable = TreeObservable.getInstance();
 
 	public HPSFPropertySet(final PropertySet propertySet, final TreeItem<TreeModelEntry> treeNode) {
 		this.propertySet = propertySet;
@@ -55,11 +53,11 @@ public class HPSFPropertySet implements TreeModelEntry {
 	}
 
 	@Override
-	public void activate() {
-		treeObservable.setBinarySource(() -> getData());
-		treeObservable.setSourceType(SourceType.octet);
-		treeObservable.setFileName(toString()+".rec");
-		treeObservable.setProperties(reflectProperties(propertySet));
+	public void activate(final DocumentFragment fragment) {
+		fragment.setBinarySource(() -> getData());
+		fragment.setSourceType(SourceType.octet);
+		fragment.setFileName(toString()+".rec");
+		fragment.setProperties(reflectProperties(propertySet));
 	}
 
 	private ByteArrayEditableData getData() throws IOException {

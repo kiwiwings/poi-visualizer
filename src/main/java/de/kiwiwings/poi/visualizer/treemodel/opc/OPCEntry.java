@@ -16,15 +16,14 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.opc;
 
+import de.kiwiwings.poi.visualizer.DocumentFragment;
+import de.kiwiwings.poi.visualizer.DocumentFragment.SourceType;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
 import de.kiwiwings.poi.visualizer.treemodel.ole.OLETreeModel;
 import javafx.scene.control.TreeItem;
 import org.apache.poi.EmptyFileException;
 import org.apache.poi.openxml4j.opc.PackagePart;
-import org.apache.poi.openxml4j.opc.PackagePartName;
 import org.apache.poi.openxml4j.opc.internal.PackagePropertiesPart;
 import org.apache.poi.poifs.filesystem.FileMagic;
 import org.apache.poi.util.IOUtils;
@@ -34,19 +33,15 @@ import org.exbin.utils.binary_data.ByteArrayEditableData;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.Observable;
 
 import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
-import static de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceOrigin.MENU_EDIT_APPLY;
 
 public class OPCEntry implements TreeModelEntry {
-	PackagePart packagePart;
-	final TreeItem<TreeModelEntry> treeNode;
-	final TreeModelEntry surrugateEntry;
-	File oleFile;
+	private PackagePart packagePart;
+	private final TreeItem<TreeModelEntry> treeNode;
+	private final TreeModelEntry surrugateEntry;
+	private File oleFile;
 	
-    final TreeObservable treeObservable = TreeObservable.getInstance();
-
 	public OPCEntry(final PackagePart packagePart, final TreeItem<TreeModelEntry> treeNode) {
 		this.packagePart = packagePart;
 		this.treeNode = treeNode;
@@ -61,50 +56,49 @@ public class OPCEntry implements TreeModelEntry {
 	}
 	
 	@Override
-	public void activate() {
+	public void activate(final DocumentFragment fragment) {
 		final String fileName = toString();
-		treeObservable.setFileName(fileName);
+		fragment.setFileName(fileName);
 		final SourceType sourceType;
 		if (fileName.matches(".*(\\.xml|\\.rels)$")) {
 			sourceType = SourceType.text_xml;
 		} else {
 			sourceType = SourceType.octet;
 		}
-		treeObservable.setSourceType(sourceType);
-		treeObservable.setProperties(null);
-		treeObservable.setTreeEntryListener(this);
+		fragment.setSourceType(sourceType);
+		fragment.setProperties(null);
 
 		// need to cache data, otherwise the switch from opc to ole doesn't work
 		// furthermore the data part needs to be set last, because of a side-effect in getData() 
 		ByteArrayEditableData dataTmp;
 		try {
-			dataTmp = getData();
-		} catch (TreeModelLoadException |IOException e) {
+			dataTmp = getData(fragment);
+		} catch (TreeModelLoadException|IOException e) {
 			dataTmp = new ByteArrayEditableData(e.getMessage().getBytes(Charset.forName("UTF-8")));
 		}
 		final ByteArrayEditableData data = dataTmp;
-		
-		treeObservable.setBinarySource(() -> data);
+
+		fragment.setBinarySource(() -> data);
 	}
 
-	@Override
-	public void update(Observable o, Object arg) {
-		if (MENU_EDIT_APPLY.equals(arg)) {
-			PackagePartName pn = packagePart.getPartName();
-			packagePart.clear();
-			try (OutputStream os = packagePart.getOutputStream()) {
-				treeObservable.getBinarySource().getBinaryData().saveToStream(os);
-				// packagePart reference might have internally changed, so we need to update ours too
-				packagePart = packagePart.getPackage().getPart(pn);
-			} catch (IOException | TreeModelLoadException e) {
-				// TODO: error message
-				e.printStackTrace();
-			}
-		}
-	}
+//	@Override
+//	public void update(Observable o, Object arg) {
+//		if (MENU_EDIT_APPLY.equals(arg)) {
+//			PackagePartName pn = packagePart.getPartName();
+//			packagePart.clear();
+//			try (OutputStream os = packagePart.getOutputStream()) {
+//				fragment.getBinarySource().getBinaryData().saveToStream(os);
+//				// packagePart reference might have internally changed, so we need to update ours too
+//				packagePart = packagePart.getPackage().getPart(pn);
+//			} catch (IOException | TreeModelLoadException e) {
+//				// TODO: error message
+//				e.printStackTrace();
+//			}
+//		}
+//	}
 
 	
-	private ByteArrayEditableData getData() throws IOException, TreeModelLoadException {
+	private ByteArrayEditableData getData(final DocumentFragment fragment) throws IOException, TreeModelLoadException {
 		if (packagePart instanceof PackagePropertiesPart) {
 			return new ByteArrayEditableData("Property parts can't be exported.".getBytes(LocaleUtil.CHARSET_1252));
 		}
@@ -121,7 +115,7 @@ public class OPCEntry implements TreeModelEntry {
 				if (oleFile == null) {
 					oleFile = copyToTempFile(is);
 					new OLETreeModel().load(treeNode, oleFile);
-					treeNode.getValue().activate();
+					treeNode.getValue().activate(fragment);
 				}
 				
 				try (InputStream is2 = new FileInputStream(oleFile)) {

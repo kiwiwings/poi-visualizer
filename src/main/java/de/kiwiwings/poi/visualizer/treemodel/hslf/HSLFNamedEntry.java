@@ -16,9 +16,9 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
+import de.kiwiwings.poi.visualizer.DocumentFragment;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import de.kiwiwings.poi.visualizer.DocumentFragment.SourceType;
 import javafx.scene.control.TreeItem;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 
@@ -32,9 +32,6 @@ public class HSLFNamedEntry implements TreeModelEntry {
 	@SuppressWarnings("unused")
 	private final TreeItem<TreeModelEntry> treeNode;
 
-    final TreeObservable treeObservable = TreeObservable.getInstance();
-
-	
 	public HSLFNamedEntry(final String name, final TreeItem<TreeModelEntry> treeNode) {
 		this.name = name;
 		this.treeNode = treeNode;
@@ -52,10 +49,10 @@ public class HSLFNamedEntry implements TreeModelEntry {
 	}
 
 	@Override
-	public void activate() {
-		treeObservable.setBinarySource(() -> new ByteArrayEditableData());
-		treeObservable.setSourceType(SourceType.empty);
-		treeObservable.setFileName(null);
-		treeObservable.setProperties("");
+	public void activate(final DocumentFragment fragment) {
+		fragment.setBinarySource(() -> new ByteArrayEditableData());
+		fragment.setSourceType(SourceType.empty);
+		fragment.setFileName(null);
+		fragment.setProperties("");
 	}
 }

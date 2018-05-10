@@ -16,9 +16,9 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.opc;
 
+import de.kiwiwings.poi.visualizer.DocumentFragment;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import de.kiwiwings.poi.visualizer.DocumentFragment.SourceType;
 import javafx.scene.control.TreeItem;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 
@@ -31,8 +31,6 @@ public class OPCDirEntry implements TreeModelEntry {
 	final TreeItem<TreeModelEntry> treeNode;
 	final TreeModelEntry surrugateEntry;
 
-    final TreeObservable treeObservable = TreeObservable.getInstance();
-	
 	public OPCDirEntry(final String path, final TreeItem<TreeModelEntry> treeNode) {
 		this.path = path;
 		this.treeNode = treeNode;
@@ -47,19 +45,19 @@ public class OPCDirEntry implements TreeModelEntry {
 	}
 
 	@Override
-	public void activate() {
+	public void activate(final DocumentFragment fragment) {
 		if (surrugateEntry != null) {
-			surrugateEntry.activate();
+			surrugateEntry.activate(fragment);
 		} else {
-			treeObservable.setBinarySource(() -> new ByteArrayEditableData());
-			treeObservable.setSourceType(SourceType.empty);
+			fragment.setBinarySource(() -> new ByteArrayEditableData());
+			fragment.setSourceType(SourceType.empty);
 		}
 		
-		setProperties();
+		setProperties(fragment);
 	}
 
-	protected void setProperties() {
-		treeObservable.setProperties(null);
+	protected void setProperties(final DocumentFragment fragment) {
+		fragment.setProperties(null);
 	}
 	
 	@Override

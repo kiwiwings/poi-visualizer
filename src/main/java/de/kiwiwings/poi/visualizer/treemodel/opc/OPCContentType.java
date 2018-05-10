@@ -16,8 +16,8 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.opc;
 
+import de.kiwiwings.poi.visualizer.DocumentFragment;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
 import javafx.scene.control.TreeItem;
 import org.apache.poi.util.IOUtils;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
@@ -32,8 +32,6 @@ public class OPCContentType implements TreeModelEntry {
     private final byte[] data;
     final TreeItem<TreeModelEntry> treeNode;
     final TreeModelEntry surrugateEntry;
-
-    TreeObservable treeObservable = TreeObservable.getInstance();
 
     OPCContentType(File source, final TreeItem<TreeModelEntry> treeNode) throws IOException {
         try (final ZipFile zipFile = new ZipFile((File)source)) {
@@ -55,13 +53,12 @@ public class OPCContentType implements TreeModelEntry {
     }
 
     @Override
-    public void activate() {
+    public void activate(final DocumentFragment fragment) {
         final String fileName = toString();
-        treeObservable.setFileName(fileName);
-        treeObservable.setSourceType(TreeObservable.SourceType.text_xml);
-        treeObservable.setProperties(null);
-        treeObservable.setTreeEntryListener(null);
-        treeObservable.setBinarySource(() -> new ByteArrayEditableData(this.data));
+        fragment.setFileName(fileName);
+        fragment.setSourceType(DocumentFragment.SourceType.text_xml);
+        fragment.setProperties(null);
+        fragment.setBinarySource(() -> new ByteArrayEditableData(this.data));
     }
 
     @Override

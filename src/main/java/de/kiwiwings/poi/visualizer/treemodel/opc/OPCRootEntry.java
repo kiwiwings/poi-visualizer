@@ -16,6 +16,7 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.opc;
 
+import de.kiwiwings.poi.visualizer.DocumentFragment;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import javafx.scene.control.TreeItem;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -34,7 +35,7 @@ public class OPCRootEntry extends OPCDirEntry {
 	private static final DateFormat DATE_FMT =
 		DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, LocaleUtil.getUserLocale());
 	
-	final OPCPackage opcPackage;
+	private final OPCPackage opcPackage;
 	
 	
 	
@@ -56,17 +57,17 @@ public class OPCRootEntry extends OPCDirEntry {
 	}
 	
 	@Override
-	public void activate() {
+	public void activate(final DocumentFragment fragment) {
 		if (surrugateEntry != null) {
-			surrugateEntry.activate();
-			setProperties();
+			surrugateEntry.activate(fragment);
+			setProperties(fragment);
 		} else {
-			super.activate();
+			super.activate(fragment);
 		}
 	}
 
 	@Override
-	protected void setProperties() {
+	protected void setProperties(final DocumentFragment fragment) {
 		try {
 			final PackageProperties props = opcPackage.getPackageProperties();
 
@@ -99,10 +100,10 @@ public class OPCRootEntry extends OPCDirEntry {
 					jsonBuilder.add((String)v[0], val.toString());
 				}
 			}
-			
-			treeObservable.mergeProperties(jsonBuilder.build().toString());
+
+			fragment.mergeProperties(jsonBuilder.build().toString());
 		} catch (InvalidFormatException e) {
-			treeObservable.mergeProperties(null);
+			fragment.mergeProperties(null);
 		}
 	}
 }

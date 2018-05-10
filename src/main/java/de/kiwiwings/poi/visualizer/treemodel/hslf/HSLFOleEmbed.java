@@ -16,10 +16,10 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
+import de.kiwiwings.poi.visualizer.DocumentFragment;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import de.kiwiwings.poi.visualizer.DocumentFragment.SourceType;
 import de.kiwiwings.poi.visualizer.treemodel.ole.OLETreeModel;
 import javafx.scene.control.TreeItem;
 import org.apache.poi.hslf.record.ExOleObjStg;
@@ -36,12 +36,10 @@ public class HSLFOleEmbed implements TreeModelEntry {
 	@SuppressWarnings("unused")
 	private final TreeItem<TreeModelEntry> treeNode;
 
-    private TreeObservable treeObservable = TreeObservable.getInstance();
-
-	File oleFile;
+	private File oleFile;
 
 	
-	public HSLFOleEmbed(final ExOleObjStg embed, final TreeItem<TreeModelEntry> treeNode) {
+	HSLFOleEmbed(final ExOleObjStg embed, final TreeItem<TreeModelEntry> treeNode) {
 		this.embed = embed;
 		this.treeNode = treeNode;
 	}
@@ -59,14 +57,14 @@ public class HSLFOleEmbed implements TreeModelEntry {
 	}
 
 	@Override
-	public void activate() {
-		treeObservable.setBinarySource(() -> getData());
-		treeObservable.setSourceType(SourceType.octet);
-		treeObservable.setFileName(toString()+".rec");
-		treeObservable.setProperties(null);
+	public void activate(final DocumentFragment fragment) {
+		fragment.setBinarySource(() -> getData(fragment));
+		fragment.setSourceType(SourceType.octet);
+		fragment.setFileName(toString()+".rec");
+		fragment.setProperties(null);
 	}
 
-	private ByteArrayEditableData getData() throws IOException, TreeModelLoadException {
+	private ByteArrayEditableData getData(final DocumentFragment fragment) throws IOException, TreeModelLoadException {
 		FileMagic fm;
 		try (InputStream is = FileMagic.prepareToCheckMagic(embed.getData())) {
 			final ByteArrayEditableData data = new ByteArrayEditableData();
@@ -76,7 +74,7 @@ public class HSLFOleEmbed implements TreeModelEntry {
 					oleFile = copyToTempFile(is);
 					OLETreeModel poifsNode = new OLETreeModel();
 					poifsNode.load(treeNode, oleFile);
-					treeNode.getValue().activate();
+					treeNode.getValue().activate(fragment);
 				}
 				
 				try (InputStream is2 = new FileInputStream(oleFile)) {

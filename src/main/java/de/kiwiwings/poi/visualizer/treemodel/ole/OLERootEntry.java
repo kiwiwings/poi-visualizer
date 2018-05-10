@@ -16,6 +16,7 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.ole;
 
+import de.kiwiwings.poi.visualizer.DocumentFragment;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import javafx.scene.control.TreeItem;
 import org.apache.poi.poifs.filesystem.DirectoryNode;
@@ -34,12 +35,12 @@ public class OLERootEntry extends OLEDirEntry {
 	}
 	
 	@Override
-	public void activate() {
+	public void activate(final DocumentFragment fragment) {
 		if (surrugateEntry != null) {
-			surrugateEntry.activate();
-			setProperties();
+			surrugateEntry.activate(fragment);
+			setProperties(fragment);
 		} else {
-			super.activate();
+			super.activate(fragment);
 		}
 	}
 }

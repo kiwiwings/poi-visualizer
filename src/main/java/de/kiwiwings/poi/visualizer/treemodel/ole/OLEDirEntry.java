@@ -16,8 +16,9 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.ole;
 
+import de.kiwiwings.poi.visualizer.DocumentFragment;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import de.kiwiwings.poi.visualizer.DocumentFragment.SourceType;
 import javafx.scene.control.TreeItem;
 import org.apache.poi.hpsf.ClassID;
 import org.apache.poi.poifs.filesystem.DirectoryNode;
@@ -31,7 +32,7 @@ import javax.json.JsonObjectBuilder;
 import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
 
 public class OLEDirEntry extends OLEEntry {
-	public OLEDirEntry(final Entry entry, final TreeItem<TreeModelEntry> treeNode) {
+	OLEDirEntry(final Entry entry, final TreeItem<TreeModelEntry> treeNode) {
 		super(entry, treeNode);
 		if (!(entry instanceof DirectoryNode)) {
 			throw new IllegalArgumentException("not a DirectoryNode");
@@ -39,14 +40,14 @@ public class OLEDirEntry extends OLEEntry {
 	}
 
 	@Override
-	public void activate() {
-		treeObservable.setBinarySource(() -> new ByteArrayEditableData());
-		treeObservable.setSourceType(SourceType.empty);
-		setProperties();
+	public void activate(final DocumentFragment fragment) {
+		fragment.setBinarySource(() -> new ByteArrayEditableData());
+		fragment.setSourceType(SourceType.empty);
+		setProperties(fragment);
 	}
 	
 	@Override
-	protected void setProperties() {
+	protected void setProperties(final DocumentFragment fragment) {
 		final DirectoryNode dirNode = (DirectoryNode)entry;
 
 		final JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
@@ -66,9 +67,9 @@ public class OLEDirEntry extends OLEEntry {
 		
 		final String props = jsonBuilder.build().toString();
 		if (surrugateEntry != null) {
-			treeObservable.mergeProperties(props);
+			fragment.mergeProperties(props);
 		} else {
-			treeObservable.setProperties(props);
+			fragment.setProperties(props);
 		}
 	}
 }

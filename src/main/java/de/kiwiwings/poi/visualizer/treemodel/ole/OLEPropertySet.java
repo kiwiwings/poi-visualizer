@@ -16,10 +16,10 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.ole;
 
+import de.kiwiwings.poi.visualizer.DocumentFragment;
+import de.kiwiwings.poi.visualizer.DocumentFragment.SourceType;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
 import javafx.scene.control.TreeItem;
 import org.apache.poi.hpsf.NoPropertySetStreamException;
 import org.apache.poi.hpsf.PropertySet;
@@ -31,7 +31,6 @@ import org.exbin.utils.binary_data.ByteArrayEditableData;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Observable;
 
 import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.escapeString;
 import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
@@ -40,8 +39,6 @@ public class OLEPropertySet implements TreeModelEntry {
 	Entry entry;
 	PropertySet propertySet;
 	final TreeItem<TreeModelEntry> treeNode;
-
-    final TreeObservable treeObservable = TreeObservable.getInstance();
 
 	public OLEPropertySet(final Entry entry, final TreeItem<TreeModelEntry> treeNode) throws TreeModelLoadException {
 		this.entry = entry;
@@ -59,19 +56,15 @@ public class OLEPropertySet implements TreeModelEntry {
 	}
 
 	@Override
-	public void activate() {
-		treeObservable.setBinarySource(() -> getData());
-		treeObservable.setSourceType(SourceType.octet);
-		treeObservable.setFileName(escapeString(entry.getName()));
-		setProperties();
+	public void activate(final DocumentFragment fragment) {
+		fragment.setBinarySource(() -> getData());
+		fragment.setSourceType(SourceType.octet);
+		fragment.setFileName(escapeString(entry.getName()));
+		setProperties(fragment);
 	}
 
-	protected void setProperties() {
-		treeObservable.setProperties(reflectProperties(propertySet));
-	}
-
-	@Override
-	public void update(Observable o, Object arg) {
+	protected void setProperties(final DocumentFragment fragment) {
+		fragment.setProperties(reflectProperties(propertySet));
 	}
 
 	private ByteArrayEditableData getData() throws IOException {

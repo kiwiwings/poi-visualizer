@@ -16,9 +16,9 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
+import de.kiwiwings.poi.visualizer.DocumentFragment;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import de.kiwiwings.poi.visualizer.DocumentFragment.SourceType;
 import javafx.scene.control.TreeItem;
 import org.apache.poi.hslf.usermodel.HSLFPictureData;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
@@ -33,9 +33,6 @@ public class HSLFPictureEntry implements TreeModelEntry {
 	@SuppressWarnings("unused")
 	private final TreeItem<TreeModelEntry> treeNode;
 
-    private final TreeObservable treeObservable = TreeObservable.getInstance();
-
-	
 	public HSLFPictureEntry(final HSLFPictureData picture, final TreeItem<TreeModelEntry> treeNode) {
 		this.picture = picture;
 		this.treeNode = treeNode;
@@ -53,11 +50,11 @@ public class HSLFPictureEntry implements TreeModelEntry {
 	}
 
 	@Override
-	public void activate() {
-		treeObservable.setBinarySource(() -> getData());
-		treeObservable.setSourceType(SourceType.octet);
-		treeObservable.setFileName(toString());
-		treeObservable.setProperties(reflectProperties(picture));
+	public void activate(final DocumentFragment fragment) {
+		fragment.setBinarySource(() -> getData());
+		fragment.setSourceType(SourceType.octet);
+		fragment.setFileName(toString());
+		fragment.setProperties(reflectProperties(picture));
 	}
 
 	private ByteArrayEditableData getData() throws IOException {

@@ -16,9 +16,9 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hpsf;
 
+import de.kiwiwings.poi.visualizer.DocumentFragment;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable;
-import de.kiwiwings.poi.visualizer.treemodel.TreeObservable.SourceType;
+import de.kiwiwings.poi.visualizer.DocumentFragment.SourceType;
 import javafx.scene.control.TreeItem;
 import org.apache.poi.hpsf.*;
 import org.apache.poi.hpsf.wellknown.PropertyIDMap;
@@ -40,9 +40,6 @@ public class HPSFProperty implements TreeModelEntry {
 	private final TreeItem<TreeModelEntry> treeNode;
 	PropertySet propertySet;
 
-    TreeObservable treeObservable = TreeObservable.getInstance();
-
-	
 	public HPSFProperty(final Property property, final TreeItem<TreeModelEntry> treeNode) {
 		this.property = property;
 		this.treeNode = treeNode;
@@ -66,7 +63,7 @@ public class HPSFProperty implements TreeModelEntry {
 	}
 
 	@Override
-	public void activate() {
+	public void activate(final DocumentFragment fragment) {
 		if (property.getType() == Variant.VT_CF) {
 			final Thumbnail thumb = new Thumbnail((byte[])property.getValue());
 			long cfTag;
@@ -93,15 +90,15 @@ public class HPSFProperty implements TreeModelEntry {
 				ext = ".bin";
 				break;
 			}
-			treeObservable.setSourceType(SourceType.octet);
-			treeObservable.setFileName("thumbnail"+ext);
+			fragment.setSourceType(SourceType.octet);
+			fragment.setFileName("thumbnail"+ext);
 		} else {
-			treeObservable.setBinarySource(() -> new ByteArrayEditableData());
-			treeObservable.setSourceType(SourceType.empty);
-			treeObservable.setFileName(null);
+			fragment.setBinarySource(() -> new ByteArrayEditableData());
+			fragment.setSourceType(SourceType.empty);
+			fragment.setFileName(null);
 		}
-		treeObservable.setBinarySource(() -> getData());
-		treeObservable.setProperties(getProperties());
+		fragment.setBinarySource(() -> getData());
+		fragment.setProperties(getProperties(fragment));
 	}
 
 	private ByteArrayEditableData getData() throws IOException {
@@ -120,8 +117,8 @@ public class HPSFProperty implements TreeModelEntry {
 		}
 		return data;
 	}
-	
-	private String getProperties() {
+
+	private String getProperties(final DocumentFragment fragment) {
 		final JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
 		final long id = property.getID();
 		jsonBuilder.add("ID", id);
