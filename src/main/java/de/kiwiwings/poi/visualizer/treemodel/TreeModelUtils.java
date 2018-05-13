@@ -17,6 +17,9 @@
 package de.kiwiwings.poi.visualizer.treemodel;
 
 import javafx.scene.control.TreeItem;
+import org.apache.poi.ddf.EscherComplexProperty;
+import org.apache.poi.ddf.EscherProperties;
+import org.apache.poi.util.StringUtil;
 
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
@@ -85,6 +88,15 @@ public class TreeModelUtils {
 					for (Object o : ((Collection<?>)retVal)) {
 						if (o == null) {
 							arrBuilder.addNull();
+						} else if (o instanceof EscherComplexProperty) {
+							final EscherComplexProperty ep = (EscherComplexProperty)o;
+							String val = ep.toString();
+							if (ep.getPropertyNumber() == EscherProperties.GROUPSHAPE__SHAPENAME) {
+								final byte[] cd = ep.getComplexData();
+								final String name = StringUtil.getFromUnicodeLE0Terminated(cd, 0, cd.length / 2);
+								val = val.replaceFirst(", data: ", ", name: '" + name + "', data: ");
+							}
+							arrBuilder.add(val);
 						} else {
 							arrBuilder.add(o.toString());
 						}
