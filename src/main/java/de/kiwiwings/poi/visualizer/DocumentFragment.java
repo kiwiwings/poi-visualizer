@@ -32,10 +32,6 @@ public class DocumentFragment {
         empty, octet, text_xml, text_plain, image_jpeg, image_png
     }
 
-    public enum SourceOrigin {
-        MENU_EDIT_APPLY;
-    }
-
     private BinarySource binarySource;
     private ByteArrayEditableData cachedBinary;
     private String fileName;

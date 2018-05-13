@@ -17,12 +17,17 @@
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
 import de.kiwiwings.poi.visualizer.DocumentFragment;
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.DocumentFragment.SourceType;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
+import de.kiwiwings.poi.visualizer.treemodel.opc.OPCTreeModel;
 import javafx.scene.control.TreeItem;
-import org.apache.poi.ddf.EscherRecord;
+import org.apache.poi.ddf.*;
+import org.apache.poi.util.TempFile;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.reflectProperties;
@@ -32,6 +37,9 @@ public class HSLFEscherRecord implements TreeModelEntry {
 	private final EscherRecord escher;
 	@SuppressWarnings("unused")
 	private final TreeItem<TreeModelEntry> treeNode;
+
+	private File opcFile;
+
 
 	public HSLFEscherRecord(final EscherRecord escher, final TreeItem<TreeModelEntry> treeNode) {
 		this.escher = escher;
@@ -51,14 +59,37 @@ public class HSLFEscherRecord implements TreeModelEntry {
 
 	@Override
 	public void activate(final DocumentFragment fragment) {
-		fragment.setBinarySource(() -> getData());
+		fragment.setBinarySource(() -> getData(fragment));
 		fragment.setSourceType(SourceType.octet);
 		fragment.setFileName(toString());
 		fragment.setProperties(reflectProperties(escher));
 	}
 
-	private ByteArrayEditableData getData() throws IOException {
-		return new ByteArrayEditableData(escher.serialize());
+	private ByteArrayEditableData getData(final DocumentFragment fragment) throws IOException, TreeModelLoadException {
+		final byte[] data = escher.serialize();
+		if (escher instanceof EscherTertiaryOptRecord && opcFile == null) {
+			final EscherTertiaryOptRecord opt = (EscherTertiaryOptRecord)escher;
+			for (final EscherProperty ep : opt.getEscherProperties()) {
+				if (EscherProperties.GROUPSHAPE__METROBLOB == ep.getPropertyNumber()) {
+					opcFile = copyToTempFile(((EscherComplexProperty)ep).getComplexData());
+					OPCTreeModel poifsNode = new OPCTreeModel();
+					poifsNode.load(treeNode, opcFile);
+					treeNode.getValue().activate(fragment);
+				}
+			}
+		}
+		return new ByteArrayEditableData(data);
 	}
 
+	private File copyToTempFile(byte[] data) throws IOException {
+		final String prefix = "metro-"+escher.getRecordId()+"-";
+		final String suffix = ".dat";
+
+		final File of = TempFile.createTempFile(prefix, suffix);
+		try (FileOutputStream fos = new FileOutputStream(of)) {
+			fos.write(data);
+		}
+		of.deleteOnExit();
+		return of;
+	}
 }

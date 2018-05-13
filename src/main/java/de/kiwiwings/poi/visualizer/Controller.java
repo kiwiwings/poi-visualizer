@@ -38,10 +38,13 @@ import org.exbin.utils.binary_data.ByteArrayEditableData;
 import javax.swing.*;
 import java.beans.PropertyChangeEvent;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.ServiceLoader;
+import java.util.function.Consumer;
 
 public class Controller implements Initializable {
 
@@ -66,9 +69,16 @@ public class Controller implements Initializable {
 
     private Stage stage;
 
-    private File workingDir;
+    private File workingDir = new File(".");
 
     private final DocumentFragment fragment = new DocumentFragment();
+
+
+    @FunctionalInterface
+    private interface ConsumerEx<T> {
+        void accept(T t) throws IOException;
+    }
+
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -90,23 +100,19 @@ public class Controller implements Initializable {
     @SuppressWarnings("unused")
     @FXML
     private void handleOpen(final ActionEvent event) {
-        if (workingDir == null) {
-            workingDir = new File(".");
-        }
-
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open Office File");
         fileChooser.setInitialDirectory(workingDir);
         final File file = fileChooser.showOpenDialog(stage);
         if (file != null) {
+            workingDir = file.getParentFile();
             openFile(file);
         }
     }
 
     void openFile(File file) {
-        workingDir = file.getParentFile();
-
         closeFile();
+        workingDir = file.getParentFile();
 
         TreeItem<TreeModelEntry> treeNode = new TreeItem<>();
         final ServiceLoader<TreeModelFileSource> sl = ServiceLoader.load(TreeModelFileSource.class);
@@ -142,6 +148,54 @@ public class Controller implements Initializable {
         stage.hide();
     }
 
+    @SuppressWarnings("unused")
+    @FXML
+    private void exportBinary(final ActionEvent event) {
+        exportFile("Save Binary Data", (file) -> {
+            try (FileOutputStream fos = new FileOutputStream(file)) {
+                getCodeArea().getData().saveToStream(fos);
+            }
+        });
+    }
+
+    @SuppressWarnings("unused")
+    @FXML
+    private void exportXML(final ActionEvent event) {
+        exportFile("Save XML Data", (file) -> {
+            try (OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(file), "UTF-8")) {
+                osw.write(xmlArea.getText());
+            }
+        });
+    }
+
+    @SuppressWarnings("unused")
+    @FXML
+    private void exportProperties(final ActionEvent event) {
+        exportFile("Save Properties", (file) -> {
+            try (OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(file), "UTF-8")) {
+                osw.write(fragment.getProperties());
+            }
+        });
+    }
+
+    private void exportFile(final String title, final ConsumerEx<File> fileSaver) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle(title);
+        fileChooser.setInitialDirectory(workingDir);
+        fileChooser.setInitialFileName(fragment.getFileName());
+
+        final File file = fileChooser.showSaveDialog(stage);
+        if (file != null) {
+            workingDir = file.getParentFile();
+
+            try  {
+                fileSaver.accept(file);
+            } catch (IOException e) {
+                new Alert(AlertType.ERROR, "error writing file", ButtonType.OK).showAndWait();
+            }
+        }
+    }
+
     private void addDeltaHex() {
         final CodeArea ca = new CodeArea();
         ca.setData(new ByteArrayEditableData());
@@ -156,7 +210,8 @@ public class Controller implements Initializable {
     private void onClick(final MouseEvent e) {
         Node node = e.getPickResult().getIntersectedNode();
         if (node instanceof Text || (node instanceof TreeCell && ((TreeCell) node).getText() != null)) {
-            TreeModelEntry tme = treeDir.getSelectionModel().getSelectedItem().getValue();
+            final MultipleSelectionModel<TreeItem<TreeModelEntry>> sm = treeDir.getSelectionModel();
+            final TreeModelEntry tme = sm.isEmpty() ? null : sm.getSelectedItem().getValue();
             if (tme != null) {
                 tme.activate(fragment);
                 fragment.notifyListeners();

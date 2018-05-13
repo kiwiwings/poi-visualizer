@@ -13,6 +13,13 @@
                     <MenuItem text="Exit" onAction="#handleExit" accelerator="Shortcut+Q"/>
                 </items>
             </Menu>
+            <Menu text="Entry">
+                <items>
+                    <MenuItem text="Export Binary" onAction="#exportBinary" accelerator="Shortcut+B"/>
+                    <MenuItem text="Export XML" onAction="#exportXML" accelerator="Shortcut+X"/>
+                    <MenuItem text="Export Properties" onAction="#exportProperties" accelerator="Shortcut+P"/>
+                </items>
+            </Menu>
         </menus>
     </MenuBar>
 
