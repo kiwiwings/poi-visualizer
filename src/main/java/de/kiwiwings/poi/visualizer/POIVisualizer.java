@@ -20,6 +20,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import java.io.File;
@@ -40,12 +41,13 @@ public class POIVisualizer extends Application {
     }
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
-        controller.setStage(primaryStage);
+    public void start(Stage stage) throws Exception {
+        controller.setStage(stage);
 
-        primaryStage.setTitle("POI Visualizer - <no file>");
-        primaryStage.setScene(new Scene(root, 800, 500));
-        primaryStage.show();
+        stage.getIcons().add(new Image(POIVisualizer.class.getResource("poi-visualizer.png").toExternalForm()));
+        stage.setTitle("POI Visualizer - <no file>");
+        stage.setScene(new Scene(root, 800, 500));
+        stage.show();
 
 
         List<String> args = getParameters().getUnnamed();
