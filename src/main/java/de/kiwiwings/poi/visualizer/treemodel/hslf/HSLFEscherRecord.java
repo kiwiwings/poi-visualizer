@@ -49,7 +49,7 @@ public class HSLFEscherRecord implements TreeModelEntry {
 
 	@Override
 	public String toString() {
-		return escher.getClass().getSimpleName();
+		return escher.getClass().getSimpleName()+" ("+escher.getRecordSize()+" b)";
 	}
 
 	

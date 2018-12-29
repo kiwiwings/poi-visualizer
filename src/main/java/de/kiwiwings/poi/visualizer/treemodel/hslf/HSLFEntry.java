@@ -50,7 +50,16 @@ public class HSLFEntry implements TreeModelEntry {
 
 	@Override
 	public String toString() {
-		return escapeString(record.getClass().getSimpleName());
+		CountingOS cnt = new CountingOS();
+		try {
+			record.writeOut(cnt);
+		} catch (IOException ignored) {
+		}
+
+		String name = (record instanceof UnknownRecordPlaceholder)
+			? ((UnknownRecordPlaceholder) record).getRecordTypeEnum().name()
+			: record.getClass().getSimpleName();
+		return escapeString(name)+" ("+cnt.size()+" b)";
 	}
 
 	
@@ -106,5 +115,26 @@ public class HSLFEntry implements TreeModelEntry {
 		return of;
 	}
 
+	static class CountingOS extends OutputStream {
+		private int count;
 
+		@Override
+		public void write(int b) {
+			count++;
+		}
+
+		@Override
+		public void write(byte[] b) {
+			count += b.length;
+		}
+
+		@Override
+		public void write(byte[] b, int off, int len) {
+			count += len;
+		}
+
+		public int size() {
+			return count;
+		}
+	}
 }
