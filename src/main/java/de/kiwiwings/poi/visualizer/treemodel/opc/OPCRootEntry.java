@@ -22,7 +22,6 @@ import javafx.scene.control.TreeItem;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.openxml4j.opc.PackageProperties;
-import org.apache.poi.openxml4j.util.Nullable;
 import org.apache.poi.util.LocaleUtil;
 
 import javax.json.Json;
@@ -30,6 +29,10 @@ import javax.json.JsonObjectBuilder;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 public class OPCRootEntry extends OPCDirEntry {
 	private static final DateFormat DATE_FMT =
@@ -70,36 +73,30 @@ public class OPCRootEntry extends OPCDirEntry {
 	protected void setProperties(final DocumentFragment fragment) {
 		try {
 			final PackageProperties props = opcPackage.getPackageProperties();
+			final Map<String, Supplier<Optional<?>>> values = new HashMap<>();
+			values.put("category", props::getCategoryProperty);
+			values.put( "contentStatus", props::getContentStatusProperty);
+			values.put( "contentType", props::getContentTypeProperty);
+			values.put( "creator", props::getCreatorProperty);
+			values.put( "description", props::getDescriptionProperty);
+			values.put( "identifier", props::getIdentifierProperty);
+			values.put( "keywords", props::getKeywordsProperty);
+			values.put( "language", props::getLanguageProperty);
+			values.put( "lastModifiedBy", props::getLastModifiedByProperty);
+			values.put( "revision", props::getRevisionProperty);
+			values.put( "subject", props::getSubjectProperty);
+			values.put( "title", props::getTitleProperty);
+			values.put( "version", props::getVersionProperty);
+			values.put( "created", props::getCreatedProperty);
+			values.put( "modified", props::getModifiedProperty);
 
-			final Object[][] values = {
-					{ "category", props.getCategoryProperty() },
-					{ "contentStatus", props.getContentStatusProperty() },
-					{ "contentType", props.getContentTypeProperty() },
-					{ "creator", props.getCreatorProperty() },
-					{ "description", props.getDescriptionProperty() },
-					{ "identifier", props.getIdentifierProperty() },
-					{ "keywords", props.getKeywordsProperty() },
-					{ "language", props.getLanguageProperty() },
-					{ "lastModifiedBy", props.getLastModifiedByProperty() },
-					{ "revision", props.getRevisionProperty() },
-					{ "subject", props.getSubjectProperty() },
-					{ "title", props.getTitleProperty() },
-					{ "version", props.getVersionProperty() },
-					{ "created", props.getCreatedProperty() },
-					{ "modified", props.getModifiedProperty() },
-			};
-			
+
 			final JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
-			for (Object[] v : values) {
-				final Nullable<?> nValue = (Nullable<?>)v[1];
-				if (nValue.hasValue()) {
-					Object val = nValue.getValue();
-					if (val instanceof Date) {
-						val = DATE_FMT.format((Date)val);
-					}
-					jsonBuilder.add((String)v[0], val.toString());
-				}
-			}
+			values.forEach((n,v) -> {
+				v.get().ifPresent(p ->
+					jsonBuilder.add(n, (p instanceof Date ? DATE_FMT.format((Date)p) : p).toString())
+				);
+			});
 
 			fragment.mergeProperties(jsonBuilder.build().toString());
 		} catch (InvalidFormatException e) {

@@ -60,7 +60,7 @@ public class HSLFTreeModel implements TreeModelDirNodeSource {
 			final TreeItem<TreeModelEntry> picNode = getNamedTreeNode(parent, "Pictures");
 			loadPictures(picNode);
 			loadCurrentUser(parent);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new TreeModelLoadException("Can't load HSLF slideshow",e);
 		}
 	}

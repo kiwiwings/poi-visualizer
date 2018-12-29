@@ -131,7 +131,8 @@ public class TreeModelUtils {
 			(Collection.class.isAssignableFrom(retType))
 		) && (
 			retType.getPackage() == null ||
-			retType.getName().contains("java.lang")
+			retType.getName().contains("java.lang") ||
+			Enum.class.isAssignableFrom(retType)
 		));
 	}
 

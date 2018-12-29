@@ -20,8 +20,8 @@
     <properties>
         <maven.compiler.source>9</maven.compiler.source>
         <maven.compiler.target>9</maven.compiler.target>
-        <poi.version>4.0.0-SNAPSHOT</poi.version>
-        <spring.version>5.0.2.RELEASE</spring.version>
+        <poi.version>4.1.0</poi.version>
+        <javafx.version>12-ea+6</javafx.version>
     </properties>
 
     <build>
@@ -59,6 +59,23 @@
         </pluginManagement>
     </build>
 
+    <repositories>
+        <repository>
+            <id>apache-staging</id>
+            <name>Apache staging repo</name>
+            <url>https://repository.apache.org/content/repositories/staging</url>
+        </repository>
+    </repositories>
+
+    <dependencyManagement>
+        <dependencies>
+            <!--<dependency>-->
+                <!--<groupId>org.apache.xmlbeans</groupId>-->
+                <!--<artifactId>xmlbeans</artifactId>-->
+                <!--<version>3.0.2</version>-->
+            <!--</dependency>-->
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -74,6 +91,14 @@
                 <exclusion>
                     <artifactId>stax-api</artifactId>
                     <groupId>stax</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>xmlbeans</artifactId>
+                    <groupId>org.apache.xmlbeans</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>poi-ooxml-schemas</artifactId>
+                    <groupId>org.apache.poi</groupId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -97,5 +122,22 @@
             <artifactId>richtextfx</artifactId>
             <version>0.9.0</version>
         </dependency>
+        <!--
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-swing</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        -->
     </dependencies>
 </project>

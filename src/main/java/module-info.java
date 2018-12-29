@@ -23,22 +23,21 @@ import de.kiwiwings.poi.visualizer.treemodel.ole.OLETreeModel;
 import de.kiwiwings.poi.visualizer.treemodel.opc.OPCTreeModel;
 
 module kiwiwings.poivisualizer {
-    requires java.xml.bind;
+//    requires java.xml.bind;
     requires javafx.base;
     requires javafx.graphics;
     requires javafx.controls;
     requires javafx.fxml;
     requires javafx.swing;
     requires exbin.binary.data;
-    requires commons.collections4;
-    requires commons.codec;
+    requires org.apache.commons.collections4;
     requires deltahex.core;
     requires deltahex.swing;
-    requires xmlbeans;
+//    requires xmlbeans;
     requires java.json;
     requires poi;
     requires poi.ooxml;
-    requires poi.ooxml.schemas;
+//    requires poi.ooxml.schemas;
     requires poi.scratchpad;
     requires richtextfx;
     requires org.apache.commons.lang3;

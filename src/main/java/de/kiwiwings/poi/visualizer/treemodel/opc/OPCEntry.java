@@ -60,7 +60,7 @@ public class OPCEntry implements TreeModelEntry {
 		final String fileName = toString();
 		fragment.setFileName(fileName);
 		final SourceType sourceType;
-		if (fileName.matches(".*(\\.xml|\\.rels)$")) {
+		if (fileName.matches(".*\\.(xml|rels|vml)$")) {
 			sourceType = SourceType.text_xml;
 		} else {
 			sourceType = SourceType.octet;
