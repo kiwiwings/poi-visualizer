@@ -12,21 +12,21 @@ You need to ...
 * or set `GDK_BACKEND=X11`, e.g. `> env GDK_BACKEND=X11 run.sh ...`  
 * or download [openjfx-12 (or higher)][4] and add it to your module-path:  
 
-
-    java \
-    -Duser.language=en \
-    -Duser.country=US \
-    -Dsun.reflect.debugModuleAccessChecks=true \
-    -Djava.locale.providers=JRE,CLDR \
-    --illegal-access=warn \
-    -cp ".../poi-visualizer/lib/*" \
-    --module-path /opt/javafx-sdk-12/lib \
-    --add-modules=javafx.controls,javafx.fxml,javafx.swing \
-    --add-opens javafx.graphics/javafx.scene.text=ALL-UNNAMED \
-    --add-exports javafx.graphics/com.sun.javafx.text=ALL-UNNAMED \
-    -Djava.library.path=/opt/javafx-sdk-12/lib \
-    de.kiwiwings.poi.visualizer.POIVisualizer
-
+```shell
+        java \
+        -Duser.language=en \
+        -Duser.country=US \
+        -Dsun.reflect.debugModuleAccessChecks=true \
+        -Djava.locale.providers=JRE,CLDR \
+        --illegal-access=warn \
+        -cp ".../poi-visualizer/lib/*" \
+        --module-path /opt/javafx-sdk-12/lib \
+        --add-modules=javafx.controls,javafx.fxml,javafx.swing \
+        --add-opens javafx.graphics/javafx.scene.text=ALL-UNNAMED \
+        --add-exports javafx.graphics/com.sun.javafx.text=ALL-UNNAMED \
+        -Djava.library.path=/opt/javafx-sdk-12/lib \
+        de.kiwiwings.poi.visualizer.POIVisualizer
+```
 
 [1]: http://www.mitec.cz/ssv.html
 [2]: http://poi.apache.org/devel/subversion.html
