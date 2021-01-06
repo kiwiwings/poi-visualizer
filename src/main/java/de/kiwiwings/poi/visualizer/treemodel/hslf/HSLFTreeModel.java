@@ -19,21 +19,25 @@ package de.kiwiwings.poi.visualizer.treemodel.hslf;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelDirNodeSource;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
+import de.kiwiwings.poi.visualizer.treemodel.generic.GenericRecordEntry;
+import de.kiwiwings.poi.visualizer.treemodel.generic.GenericRootEntry;
+import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
 import org.apache.poi.ddf.EscherContainerRecord;
 import org.apache.poi.ddf.EscherRecord;
 import org.apache.poi.ddf.EscherTextboxRecord;
 import org.apache.poi.hslf.model.textproperties.TextProp;
 import org.apache.poi.hslf.model.textproperties.TextPropCollection;
+import org.apache.poi.hslf.record.Record;
 import org.apache.poi.hslf.record.*;
 import org.apache.poi.hslf.usermodel.HSLFPictureData;
 import org.apache.poi.hslf.usermodel.HSLFSlideShow;
 import org.apache.poi.poifs.filesystem.DirectoryNode;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Predicate;
 
 import static de.kiwiwings.poi.visualizer.treemodel.TreeModelUtils.getNamedTreeNode;
 
@@ -52,8 +56,13 @@ public class HSLFTreeModel implements TreeModelDirNodeSource {
 		}
 
 		try {
-			ppt = new HSLFSlideShow(source);
 			final TreeItem<TreeModelEntry> slNode = getNamedTreeNode(parent, HSLFSlideShow.POWERPOINT_DOCUMENT);
+			if (slNode.getValue() instanceof GenericRootEntry) {
+				GenericRootEntry ge = (GenericRootEntry)slNode.getValue();
+				ppt = (HSLFSlideShow)ge.getRoot();
+			} else {
+				ppt = new HSLFSlideShow(source);
+			}
 			HSLFRootEntry rootNode = new HSLFRootEntry(ppt, slNode);
 			slNode.setValue(rootNode);
 			loadRecords(slNode,ppt.getSlideShowImpl().getRecords());
@@ -69,7 +78,9 @@ public class HSLFTreeModel implements TreeModelDirNodeSource {
 		int parentTextSize = 0;
 		for (final Record r : records) {
 			final BiFunction<Record,TreeItem<TreeModelEntry>,TreeModelEntry> newTME;
-			if (r instanceof RecordContainer) {
+			if (r instanceof Slide) {
+				newTME = HSLFSlideEntry::new;
+			}else if (r instanceof RecordContainer) {
 				newTME = HSLFDirEntry::new;
 			} else if (r instanceof PPDrawing) {
 				newTME = HSLFDrawing::new;
@@ -77,9 +88,13 @@ public class HSLFTreeModel implements TreeModelDirNodeSource {
 				newTME = HSLFEntry::new;
 			}
 
-			final TreeItem<TreeModelEntry> childNode = new TreeItem<>();
+			ObservableList<TreeItem<TreeModelEntry>> children = parentNode.getChildren();
+			final TreeItem<TreeModelEntry> oldItem = children.stream().filter(matchGenericEntry(r)).findFirst().orElse(null);
+			final TreeItem<TreeModelEntry> childNode = (oldItem != null) ? oldItem : new TreeItem<>();
 			childNode.setValue(newTME.apply(r, childNode));
-			parentNode.getChildren().add(childNode);
+			if (oldItem == null) {
+				parentNode.getChildren().add(childNode);
+			}
 
 			// need to store text size, in case we need to parse a styletextproperties atom later
 			if (r instanceof TextBytesAtom) {
@@ -87,8 +102,8 @@ public class HSLFTreeModel implements TreeModelDirNodeSource {
 			} else if (r instanceof TextCharsAtom) {
 				parentTextSize = ((TextCharsAtom)r).getText().length();
 			}
-			
-			
+
+
 			if (r instanceof RecordContainer) {
 				loadRecords(childNode, r.getChildRecords());
 			} else if (r instanceof PPDrawing) {
@@ -108,6 +123,14 @@ public class HSLFTreeModel implements TreeModelDirNodeSource {
 				loadTextProp(childNode, "paragraphStyles", stpa.getParagraphStyles());
 			}
 		}
+	}
+
+	private static Predicate<TreeItem<TreeModelEntry>> matchGenericEntry(Record r) {
+		return (item) -> {
+			TreeModelEntry entry = item.getValue();
+			return entry instanceof GenericRecordEntry &&
+			   ((GenericRecordEntry)entry).getRecord() == r;
+		};
 	}
 
 	private void loadTextProp(final TreeItem<TreeModelEntry> parentNode, String name, List<TextPropCollection> props) {
@@ -131,7 +154,7 @@ public class HSLFTreeModel implements TreeModelDirNodeSource {
 			}
 		}
 	}
-	
+
 	private void loadOleEmbed(final TreeItem<TreeModelEntry> parentNode, ExOleObjStg record) {
 		final TreeItem<TreeModelEntry> childNode = new TreeItem<>();
 		final TreeModelEntry oleEntry = new HSLFOleEmbed(record, childNode);
@@ -166,7 +189,7 @@ public class HSLFTreeModel implements TreeModelDirNodeSource {
 			}
 		}
 	}
-	
+
 	private void loadCurrentUser(final TreeItem<TreeModelEntry> parentNode) {
 		final TreeItem<TreeModelEntry> cuNode = getNamedTreeNode(parentNode, "Current User");
 		final CurrentUserAtom cu = ppt.getSlideShowImpl().getCurrentUserAtom();

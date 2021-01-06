@@ -1,3 +1,4 @@
 de.kiwiwings.poi.visualizer.treemodel.hpsf.HPSFTreeModel
+de.kiwiwings.poi.visualizer.treemodel.generic.GenericTreeModel
 de.kiwiwings.poi.visualizer.treemodel.hslf.HSLFTreeModel
 de.kiwiwings.poi.visualizer.treemodel.hssf.HSSFTreeModel

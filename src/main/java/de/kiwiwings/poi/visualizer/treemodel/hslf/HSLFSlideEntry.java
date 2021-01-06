@@ -16,30 +16,22 @@
 
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
-import de.kiwiwings.poi.visualizer.DocumentFragment;
-import de.kiwiwings.poi.visualizer.DocumentFragment.SourceType;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import javafx.scene.control.TreeItem;
 import org.apache.poi.hslf.record.Record;
-import org.exbin.utils.binary_data.ByteArrayEditableData;
+import org.apache.poi.hslf.record.Slide;
 
-import java.io.IOException;
+public class HSLFSlideEntry extends HSLFDirEntry {
 
-public class HSLFDirEntry extends HSLFEntry {
+	private final Slide slide;
 
-	public HSLFDirEntry(final Record path, final TreeItem<TreeModelEntry> treeNode) {
-		super(path, treeNode);
+	public HSLFSlideEntry(final Record slide, final TreeItem<TreeModelEntry> treeNode) {
+		super(slide, treeNode);
+		this.slide = (Slide)slide;
 	}
 
 	@Override
-	public void close() throws IOException {
+	public String toString() {
+		return "Slide (id " + slide.getSheetId() + ")";
 	}
-
-	@Override
-	public void activate(final DocumentFragment fragment) {
-		fragment.setBinarySource(ByteArrayEditableData::new);
-		fragment.setSourceType(SourceType.empty);
-		fragment.setProperties(null);
-	}
-
 }

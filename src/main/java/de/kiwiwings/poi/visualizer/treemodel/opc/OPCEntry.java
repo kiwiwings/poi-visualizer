@@ -41,20 +41,20 @@ public class OPCEntry implements TreeModelEntry {
 	private final TreeItem<TreeModelEntry> treeNode;
 	private final TreeModelEntry surrugateEntry;
 	private File oleFile;
-	
+
 	public OPCEntry(final PackagePart packagePart, final TreeItem<TreeModelEntry> treeNode) {
 		this.packagePart = packagePart;
 		this.treeNode = treeNode;
 		surrugateEntry = treeNode.getValue();
 	}
-	
+
 	@Override
 	public String toString() {
 		final String name = escapeString(packagePart.getPartName().getName().replaceAll(".*/", ""));
 		return (treeNode.getParent() == null || surrugateEntry == null)
 				? name : surrugateEntry+" ("+name+")";
 	}
-	
+
 	@Override
 	public void activate(final DocumentFragment fragment) {
 		final String fileName = toString();
@@ -69,7 +69,7 @@ public class OPCEntry implements TreeModelEntry {
 		fragment.setProperties(null);
 
 		// need to cache data, otherwise the switch from opc to ole doesn't work
-		// furthermore the data part needs to be set last, because of a side-effect in getData() 
+		// furthermore the data part needs to be set last, because of a side-effect in getData()
 		ByteArrayEditableData dataTmp;
 		try {
 			dataTmp = getData(fragment);
@@ -97,12 +97,12 @@ public class OPCEntry implements TreeModelEntry {
 //		}
 //	}
 
-	
+
 	private ByteArrayEditableData getData(final DocumentFragment fragment) throws IOException, TreeModelLoadException {
 		if (packagePart instanceof PackagePropertiesPart) {
 			return new ByteArrayEditableData("Property parts can't be exported.".getBytes(LocaleUtil.CHARSET_1252));
 		}
-		
+
 		FileMagic fm;
 		try (InputStream is = FileMagic.prepareToCheckMagic(packagePart.getInputStream())) {
 			final ByteArrayEditableData data = new ByteArrayEditableData();
@@ -111,22 +111,37 @@ public class OPCEntry implements TreeModelEntry {
 			} catch (EmptyFileException e) {
 				return data;
 			}
-			if (fm == FileMagic.OLE2) {
-				if (oleFile == null) {
-					oleFile = copyToTempFile(is);
-					new OLETreeModel().load(treeNode, oleFile);
-					treeNode.getValue().activate(fragment);
-				}
-				
-				try (InputStream is2 = new FileInputStream(oleFile)) {
-					data.loadFromStream(is2);
-				}
-			} else {
-				data.loadFromStream(is);
+
+			switch (fm) {
+				case OLE2:
+					if (oleFile == null) {
+						oleFile = copyToTempFile(is);
+						new OLETreeModel().load(treeNode, oleFile);
+						treeNode.getValue().activate(fragment);
+					}
+
+					try (InputStream is2 = new FileInputStream(oleFile)) {
+						data.loadFromStream(is2);
+					}
+					break;
+				case OOXML:
+					if (oleFile == null) {
+						oleFile = copyToTempFile(is);
+						new OPCTreeModel().load(treeNode, oleFile);
+						treeNode.getValue().activate(fragment);
+					}
+
+					try (InputStream is2 = new FileInputStream(oleFile)) {
+						data.loadFromStream(is2);
+					}
+					break;
+				default:
+					data.loadFromStream(is);
+					break;
 			}
 			return data;
 		}
-		
+
 	}
 
 	private File copyToTempFile(InputStream is) throws IOException {
@@ -143,9 +158,9 @@ public class OPCEntry implements TreeModelEntry {
 		of.deleteOnExit();
 		return of;
 	}
-	
+
 	@Override
 	public void close() throws IOException {
-		
+
 	}
 }

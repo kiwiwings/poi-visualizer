@@ -42,9 +42,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ResourceBundle;
 import java.util.ServiceLoader;
-import java.util.function.Consumer;
 
 public class Controller implements Initializable {
 
@@ -162,7 +162,7 @@ public class Controller implements Initializable {
     @FXML
     private void exportXML(final ActionEvent event) {
         exportFile("Save XML Data", (file) -> {
-            try (OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(file), "UTF-8")) {
+            try (OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
                 osw.write(xmlArea.getText());
             }
         });
@@ -172,7 +172,7 @@ public class Controller implements Initializable {
     @FXML
     private void exportProperties(final ActionEvent event) {
         exportFile("Save Properties", (file) -> {
-            try (OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(file), "UTF-8")) {
+            try (OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
                 osw.write(fragment.getProperties());
             }
         });
@@ -209,7 +209,7 @@ public class Controller implements Initializable {
     @FXML
     private void onClick(final MouseEvent e) {
         Node node = e.getPickResult().getIntersectedNode();
-        if (node instanceof Text || (node instanceof TreeCell && ((TreeCell) node).getText() != null)) {
+        if (node instanceof Text || (node instanceof TreeCell && ((TreeCell<?>) node).getText() != null)) {
             final MultipleSelectionModel<TreeItem<TreeModelEntry>> sm = treeDir.getSelectionModel();
             final TreeModelEntry tme = sm.isEmpty() ? null : sm.getSelectedItem().getValue();
             if (tme != null) {
@@ -265,8 +265,4 @@ public class Controller implements Initializable {
             }
         }
     }
-
-
-
-
 }

@@ -39,14 +39,8 @@ public class TreeModelUtils {
 	private static final Pattern getter = Pattern.compile("(?:is|get)(.*)");
 
 	public static TreeItem<TreeModelEntry> getNamedTreeNode(final TreeItem<TreeModelEntry> parent, final String... names) {
-		final List<String> escNames = Arrays.asList(names).stream().map(n -> escapeString(n)).collect(Collectors.toList());
-		for (TreeItem<TreeModelEntry> c : parent.getChildren()) {
-			final TreeModelEntry poifsEntry = c.getValue();
-			if (escNames.contains(poifsEntry.toString())) {
-				return c;
-			}
-		}
-		return null;
+		final List<String> escNames = Arrays.stream(names).map(TreeModelUtils::escapeString).collect(Collectors.toList());
+		return parent.getChildren().stream().filter(c -> escNames.stream().anyMatch(n -> c.getValue().toString().contains(n))).findFirst().orElse(null);
 	}
 
 	/**
@@ -64,7 +58,7 @@ public class TreeModelUtils {
 		match.appendTail(sb);
 		return sb.toString();
 	}
-	
+
 	public static String reflectProperties(Object obj) {
 		final JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
 
@@ -80,7 +74,7 @@ public class TreeModelUtils {
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 					retVal = e.getMessage();
 				}
-				
+
 				if (retVal == null) {
 					jsonBuilder.addNull(propName);
 				} else if (retVal instanceof Collection<?>) {

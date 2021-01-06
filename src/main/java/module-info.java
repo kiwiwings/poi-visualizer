@@ -16,6 +16,7 @@
 
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelDirNodeSource;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelFileSource;
+import de.kiwiwings.poi.visualizer.treemodel.generic.GenericTreeModel;
 import de.kiwiwings.poi.visualizer.treemodel.hpsf.HPSFTreeModel;
 import de.kiwiwings.poi.visualizer.treemodel.hslf.HSLFTreeModel;
 import de.kiwiwings.poi.visualizer.treemodel.hssf.HSSFTreeModel;
@@ -23,7 +24,7 @@ import de.kiwiwings.poi.visualizer.treemodel.ole.OLETreeModel;
 import de.kiwiwings.poi.visualizer.treemodel.opc.OPCTreeModel;
 
 module kiwiwings.poivisualizer {
-//    requires java.xml.bind;
+    requires java.xml.bind;
     requires javafx.base;
     requires javafx.graphics;
     requires javafx.controls;
@@ -33,13 +34,12 @@ module kiwiwings.poivisualizer {
     requires org.apache.commons.collections4;
     requires deltahex.core;
     requires deltahex.swing;
-//    requires xmlbeans;
     requires java.json;
     requires poi;
     requires poi.ooxml;
-//    requires poi.ooxml.schemas;
     requires poi.scratchpad;
-    requires richtextfx;
+    requires org.fxmisc.richtext;
+    requires flowless;
     requires org.apache.commons.lang3;
     requires reactfx;
     exports de.kiwiwings.poi.visualizer;
@@ -47,5 +47,5 @@ module kiwiwings.poivisualizer {
     uses TreeModelFileSource;
     uses TreeModelDirNodeSource;
     provides TreeModelFileSource with OPCTreeModel, OLETreeModel;
-    provides TreeModelDirNodeSource with HPSFTreeModel, HSLFTreeModel, HSSFTreeModel;
+    provides TreeModelDirNodeSource with GenericTreeModel, HPSFTreeModel, HSLFTreeModel, HSSFTreeModel;
 }

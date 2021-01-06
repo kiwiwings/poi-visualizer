@@ -17,8 +17,8 @@
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
 import de.kiwiwings.poi.visualizer.DocumentFragment;
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.DocumentFragment.SourceType;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import javafx.scene.control.TreeItem;
 import org.apache.poi.hslf.record.PPDrawing;
 import org.apache.poi.hslf.record.Record;
@@ -47,14 +47,14 @@ public class HSLFDrawing implements TreeModelEntry {
 		return escapeString(drawing.getClass().getSimpleName());
 	}
 
-	
+
 	@Override
 	public void close() throws IOException {
 	}
 
 	@Override
 	public void activate(final DocumentFragment fragment) {
-		fragment.setBinarySource(() -> getData());
+		fragment.setBinarySource(this::getData);
 		fragment.setSourceType(SourceType.octet);
 		fragment.setFileName(toString()+".rec");
 		fragment.setProperties(reflectProperties(drawing));

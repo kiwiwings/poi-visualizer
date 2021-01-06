@@ -35,16 +35,18 @@
                         <SwingNode fx:id="deltaHexSN"/>
                     </Tab>
                     <Tab fx:id="xmlTab" text="XML">
-                        <fx:define>
-                            <CodeArea fx:id="xmlArea" stylesheets="@xml-area.css"/>
-                        </fx:define>
-                        <VirtualizedScrollPane fx:id="xmlEditorPane" content="$xmlArea"/>
+                        <VirtualizedScrollPane fx:id="xmlEditorPane">
+                            <content>
+                                <CodeArea fx:id="xmlArea" stylesheets="@xml-area.css"/>
+                            </content>
+                        </VirtualizedScrollPane>
                     </Tab>
                     <Tab fx:id="propTab" text="Properties">
-                        <fx:define>
-                            <CodeArea fx:id="propertiesArea" stylesheets="@json-area.css"/>
-                        </fx:define>
-                        <VirtualizedScrollPane fx:id="propertiesPane" content="$propertiesArea"/>
+                        <VirtualizedScrollPane fx:id="propertiesPane">
+                            <content>
+                                <CodeArea fx:id="propertiesArea" stylesheets="@json-area.css"/>
+                            </content>
+                        </VirtualizedScrollPane>
                     </Tab>
                 </tabs>
             </TabPane>

@@ -14,32 +14,40 @@
    limitations under the License.
 ==================================================================== */
 
-package de.kiwiwings.poi.visualizer.treemodel.hslf;
+package de.kiwiwings.poi.visualizer.treemodel.generic;
 
 import de.kiwiwings.poi.visualizer.DocumentFragment;
 import de.kiwiwings.poi.visualizer.DocumentFragment.SourceType;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
-import javafx.scene.control.TreeItem;
-import org.apache.poi.hslf.record.Record;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
 
 import java.io.IOException;
+import java.util.function.Consumer;
 
-public class HSLFDirEntry extends HSLFEntry {
+public class GenericNamedEntry implements TreeModelEntry {
+    private final String name;
+    private final Consumer<DocumentFragment> handler;
 
-	public HSLFDirEntry(final Record path, final TreeItem<TreeModelEntry> treeNode) {
-		super(path, treeNode);
-	}
+    public GenericNamedEntry(String name, Consumer<DocumentFragment> handler) {
+        this.name = name;
+        this.handler = handler;
+    }
 
-	@Override
-	public void close() throws IOException {
-	}
+    @Override
+    public void activate(DocumentFragment fragment) {
+        fragment.setBinarySource(ByteArrayEditableData::new);
+        fragment.setSourceType(SourceType.empty);
+        fragment.setProperties("");
+        handler.accept(fragment);
+    }
 
-	@Override
-	public void activate(final DocumentFragment fragment) {
-		fragment.setBinarySource(ByteArrayEditableData::new);
-		fragment.setSourceType(SourceType.empty);
-		fragment.setProperties(null);
-	}
+    @Override
+    public String toString() {
+        return name;
+    }
 
+    @Override
+    public void close() throws IOException {
+
+    }
 }

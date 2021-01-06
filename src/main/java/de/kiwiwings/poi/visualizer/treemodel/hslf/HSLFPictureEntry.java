@@ -17,8 +17,8 @@
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
 import de.kiwiwings.poi.visualizer.DocumentFragment;
-import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.DocumentFragment.SourceType;
+import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import javafx.scene.control.TreeItem;
 import org.apache.poi.hslf.usermodel.HSLFPictureData;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
@@ -41,10 +41,10 @@ public class HSLFPictureEntry implements TreeModelEntry {
 
 	@Override
 	public String toString() {
-		return "picture_"+picture.getIndex()+"."+picture.getType().extension;
+		return "picture_"+picture.getIndex()+picture.getType().extension;
 	}
 
-	
+
 	@Override
 	public void close() throws IOException {
 	}

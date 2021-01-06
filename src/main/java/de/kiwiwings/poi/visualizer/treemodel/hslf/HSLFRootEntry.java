@@ -28,7 +28,7 @@ public class HSLFRootEntry implements TreeModelEntry {
 	HSLFSlideShow ppt;
 	final TreeItem<TreeModelEntry> treeNode;
 	final TreeModelEntry surrugateEntry;
-	
+
 	public HSLFRootEntry(HSLFSlideShow ppt, TreeItem<TreeModelEntry> treeNode) {
 		this.ppt = ppt;
 		this.treeNode = treeNode;
@@ -39,10 +39,10 @@ public class HSLFRootEntry implements TreeModelEntry {
 	public String toString() {
 		final String name = "SlideShow";
 		return (treeNode.getParent() == null || surrugateEntry == null)
-				? name : surrugateEntry+" ("+name+")";
+				? name : surrugateEntry.toString();
 	}
 
-	
+
 	@Override
 	public void close() throws IOException {
 	}

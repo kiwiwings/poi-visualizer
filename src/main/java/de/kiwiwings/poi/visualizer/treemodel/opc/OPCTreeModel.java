@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 public class OPCTreeModel implements TreeModelFileSource {
-	
+
 	TreeItem<TreeModelEntry> parent;
 
 	@Override
@@ -104,9 +104,9 @@ public class OPCTreeModel implements TreeModelFileSource {
 			parent.getChildren().add(node);
 		} catch (InvalidFormatException|IOException ex) {
 			IOUtils.closeQuietly(opc);
-			throw new TreeModelLoadException("Error in opening '"+((File)source).getPath()+"'");
+			throw new TreeModelLoadException("Error in opening '" + source.getPath() + "'", ex);
 		}
 
-	
+
 	}
 }

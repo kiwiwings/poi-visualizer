@@ -17,9 +17,9 @@
 package de.kiwiwings.poi.visualizer.treemodel.hslf;
 
 import de.kiwiwings.poi.visualizer.DocumentFragment;
+import de.kiwiwings.poi.visualizer.DocumentFragment.SourceType;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelEntry;
 import de.kiwiwings.poi.visualizer.treemodel.TreeModelLoadException;
-import de.kiwiwings.poi.visualizer.DocumentFragment.SourceType;
 import de.kiwiwings.poi.visualizer.treemodel.opc.OPCTreeModel;
 import javafx.scene.control.TreeItem;
 import org.apache.poi.hslf.record.Record;
@@ -40,11 +40,13 @@ public class HSLFEntry implements TreeModelEntry {
 	private final Record record;
 	@SuppressWarnings("unused")
 	private final TreeItem<TreeModelEntry> treeNode;
+	final TreeModelEntry surrugateEntry;
 	File opcFile;
 
 	public HSLFEntry(final Record record, final TreeItem<TreeModelEntry> treeNode) {
 		this.record = record;
 		this.treeNode = treeNode;
+		this.surrugateEntry = treeNode.getValue();
 	}
 
 
@@ -62,7 +64,7 @@ public class HSLFEntry implements TreeModelEntry {
 		return escapeString(name)+" ("+cnt.size()+" b)";
 	}
 
-	
+
 	@Override
 	public void close() throws IOException {
 	}
@@ -100,7 +102,7 @@ public class HSLFEntry implements TreeModelEntry {
 
 		return data;
 
-		
+
 	}
 
 	private File copyToTempFile(InputStream is) throws IOException {
