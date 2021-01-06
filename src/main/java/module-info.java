@@ -24,7 +24,7 @@ import de.kiwiwings.poi.visualizer.treemodel.ole.OLETreeModel;
 import de.kiwiwings.poi.visualizer.treemodel.opc.OPCTreeModel;
 
 module kiwiwings.poivisualizer {
-    requires java.xml.bind;
+    // requires java.xml.bind;
     requires javafx.base;
     requires javafx.graphics;
     requires javafx.controls;

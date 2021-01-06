@@ -44,9 +44,6 @@
 		<dependencySet>
 			<excludes>
 				<exclude>org.openjfx:*</exclude>
-				<exclude>javax.activation:*</exclude>
-				<exclude>javax.xml.bind:*</exclude>
-				<exclude>com.sun.xml.bind:*</exclude>
 			</excludes>
 			<outputDirectory>lib</outputDirectory>
 			<useProjectArtifact>true</useProjectArtifact>
