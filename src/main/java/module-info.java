@@ -35,9 +35,10 @@ module kiwiwings.poivisualizer {
     requires deltahex.core;
     requires deltahex.swing;
     requires java.json;
-    requires poi;
-    requires poi.ooxml;
-    requires poi.scratchpad;
+    requires org.apache.commons.io;
+    requires org.apache.poi.poi;
+    requires org.apache.poi.ooxml;
+    requires org.apache.poi.scratchpad;
     requires org.fxmisc.richtext;
     requires flowless;
     requires org.apache.commons.lang3;

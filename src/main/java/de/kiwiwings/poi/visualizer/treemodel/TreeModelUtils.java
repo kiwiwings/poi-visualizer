@@ -17,8 +17,10 @@
 package de.kiwiwings.poi.visualizer.treemodel;
 
 import javafx.scene.control.TreeItem;
+import org.apache.poi.common.usermodel.GenericRecord;
 import org.apache.poi.ddf.EscherComplexProperty;
-import org.apache.poi.ddf.EscherProperties;
+import org.apache.poi.ddf.EscherPropertyTypes;
+import org.apache.poi.util.GenericRecordJsonWriter;
 import org.apache.poi.util.StringUtil;
 
 import javax.json.Json;
@@ -32,14 +34,23 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class TreeModelUtils {
 	// replace control characters
 	private static final Pattern CTRL_CHR = Pattern.compile("\\p{Cc}");
 	private static final Pattern getter = Pattern.compile("(?:is|get)(.*)");
 
+	public static TreeItem<TreeModelEntry> getNamedTreeNode(final TreeItem<TreeModelEntry> parent, final List<String> names) {
+		return getNamedTreeNode(parent, names.stream());
+	}
+
 	public static TreeItem<TreeModelEntry> getNamedTreeNode(final TreeItem<TreeModelEntry> parent, final String... names) {
-		final List<String> escNames = Arrays.stream(names).map(TreeModelUtils::escapeString).collect(Collectors.toList());
+		return getNamedTreeNode(parent, Stream.of(names));
+	}
+
+	private static TreeItem<TreeModelEntry> getNamedTreeNode(final TreeItem<TreeModelEntry> parent, final Stream<String> names) {
+		final List<String> escNames = names.map(TreeModelUtils::escapeString).collect(Collectors.toList());
 		return parent.getChildren().stream().filter(c -> escNames.stream().anyMatch(n -> c.getValue().toString().contains(n))).findFirst().orElse(null);
 	}
 
@@ -60,6 +71,11 @@ public class TreeModelUtils {
 	}
 
 	public static String reflectProperties(Object obj) {
+		if (obj instanceof GenericRecord) {
+			return GenericRecordJsonWriter.marshal((GenericRecord)obj, true);
+		}
+
+
 		final JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
 
 		for (Method m : getGetter(new ArrayList<>(), obj.getClass())) {
@@ -85,7 +101,7 @@ public class TreeModelUtils {
 						} else if (o instanceof EscherComplexProperty) {
 							final EscherComplexProperty ep = (EscherComplexProperty)o;
 							String val = ep.toString();
-							if (ep.getPropertyNumber() == EscherProperties.GROUPSHAPE__SHAPENAME) {
+							if (ep.getPropertyNumber() == EscherPropertyTypes.GROUPSHAPE__SHAPENAME.getPropertyId()) {
 								final byte[] cd = ep.getComplexData();
 								final String name = StringUtil.getFromUnicodeLE0Terminated(cd, 0, cd.length / 2);
 								val = val.replaceFirst(", data: ", ", name: '" + name + "', data: ");

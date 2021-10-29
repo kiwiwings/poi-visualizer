@@ -25,10 +25,10 @@ import javafx.scene.control.TreeItem;
 import org.apache.poi.hslf.record.Record;
 import org.apache.poi.hslf.record.UnknownRecordPlaceholder;
 import org.apache.poi.poifs.filesystem.FileMagic;
-import org.apache.poi.util.BoundedInputStream;
 import org.apache.poi.util.IOUtils;
 import org.apache.poi.util.TempFile;
 import org.exbin.utils.binary_data.ByteArrayEditableData;
+import org.apache.commons.io.input.BoundedInputStream;
 
 import java.io.*;
 

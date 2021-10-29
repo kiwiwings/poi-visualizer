@@ -52,7 +52,7 @@ public class HSLFEscherRecord implements TreeModelEntry {
 		return escher.getClass().getSimpleName()+" ("+escher.getRecordSize()+" b)";
 	}
 
-	
+
 	@Override
 	public void close() throws IOException {
 	}
@@ -70,7 +70,7 @@ public class HSLFEscherRecord implements TreeModelEntry {
 		if (escher instanceof EscherTertiaryOptRecord && opcFile == null) {
 			final EscherTertiaryOptRecord opt = (EscherTertiaryOptRecord)escher;
 			for (final EscherProperty ep : opt.getEscherProperties()) {
-				if (EscherProperties.GROUPSHAPE__METROBLOB == ep.getPropertyNumber()) {
+				if (EscherPropertyTypes.GROUPSHAPE__METROBLOB.getPropertyId() == ep.getPropertyNumber()) {
 					opcFile = copyToTempFile(((EscherComplexProperty)ep).getComplexData());
 					OPCTreeModel poifsNode = new OPCTreeModel();
 					poifsNode.load(treeNode, opcFile);

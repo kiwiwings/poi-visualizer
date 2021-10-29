@@ -83,7 +83,7 @@ final class CodeIndenter {
     static String indentJson(final String jsonInput) {
         if (jsonInput == null || "".equals(jsonInput)) {
             return "";
-        } else if (!jsonInput.startsWith("{")) {
+        } else if (!jsonInput.startsWith("{") || jsonInput.contains("/*")) {
             return jsonInput;
         } else {
             try (
