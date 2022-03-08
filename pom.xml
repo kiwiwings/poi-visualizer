@@ -20,7 +20,7 @@
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <poi.version>5.1.0</poi.version>
+        <poi.version>5.2.1</poi.version>
         <javafx.version>17.0.1</javafx.version>
     </properties>
 
